@@ -6,14 +6,9 @@
       "date": "1. februar 2026"
     },
     {
-    "name": "Marts1 2026",
-      "filename": "data/jobads_customgpt_optimized_2026_03_with_description_zipcode_town_part1.json",
+    "name": "Marts 2026",
+      "filename": "importedads_20260301_20260331_foundation_cleaned_stage3_urlclean_updated.json",
       "date": "1. marts 2026"
-     },
-    {
-      "name": "Marts2 2026",
-      "filename": "data/jobads_customgpt_optimized_2026_03_with_description_zipcode_town_part2.json",
-      "date": "1. marts 2026"
-    }
+     }
   ]
 }
