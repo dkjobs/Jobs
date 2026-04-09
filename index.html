@@ -190,7 +190,27 @@ header {
 .job-body { flex: 1; min-width: 0; }
 .job-title { font-size: 17px; font-weight: 700; color: var(--black); line-height: 1.3; margin-bottom: 3px; letter-spacing: -0.2px; }
 .job-company { font-size: 14px; color: var(--gray2); font-weight: 500; margin-bottom: 10px; }
-.job-match-reason { font-size: 12px; color: var(--orange2); font-weight: 500; margin-bottom: 8px; font-style: italic; }
+.job-match-reason { font-size: 12px; color: var(--orange2); font-weight: 500; margin-bottom: 8px; font-style: italic; display: flex; align-items: center; gap: 5px; }
+.job-match-reason::before { content: '✦'; font-style: normal; font-size: 10px; }
+
+/* ── AI INTERPRETATION BANNER ── */
+.ai-interpretation {
+  background: linear-gradient(135deg, #FFF8F5 0%, #FFF3EE 100%);
+  border: 1.5px solid #F5C5B0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: fadeUp 0.3s ease;
+}
+.ai-interp-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.ai-interp-body { flex: 1; min-width: 0; }
+.ai-interp-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 3px; }
+.ai-interp-text { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 5px; }
+.ai-interp-keywords { font-size: 12px; color: var(--gray2); line-height: 1.8; }
+.ai-interp-kw { display: inline-block; background: rgba(224,78,33,0.09); border-radius: 3px; padding: 1px 6px; margin: 1px 3px 1px 0; font-size: 11.5px; color: var(--gray1); }
 .job-tags { display: flex; flex-wrap: wrap; gap: 5px; }
 .tag { padding: 3px 10px; border-radius: 4px; font-size: 11.5px; font-weight: 600; }
 .tag-loc  { background: #EBF3FF; color: #2563EB; }
@@ -485,15 +505,31 @@ const DEFAULT_CFG = {
   heroLabel:   'Det danske jobmarked · AI-drevet søgning',
   placeholder: "F.eks. 'sygeplejerske i Aarhus' eller 'React-udvikler startup'",
   chips: ['Dataforsker Python', 'SOSU plejehjem Sjælland', 'Junior salgskonsulent', 'Folkeskolelærer Jylland'],
-  aiPrompt: `Du er en dansk jobsøgningsassistent. Brugerens søgning: "{query}"
+  expandPrompt: `Du er en dansk jobsøgnings-AI. Brugerens søgning: "{query}"
 
-Ranger disse {count} jobopslag efter relevans. Svar KUN med et JSON array af job_id værdier for de {max} mest relevante — absolut ingen tekst før eller efter arrayet.
+Analysér søgningen og returner et JSON objekt med disse felter — ingen markdown, kun JSON:
+{
+  "keywords": ["ord1","ord2",...],
+  "interpretation": "Én sætning der beskriver hvad brugeren leder efter",
+  "sector": "Branchenavn på dansk"
+}
 
-Eksempel på korrekt svar: [538891, 538834, 538802]
+"keywords" skal indeholde 10-20 relevante søgeord på BÅDE dansk og engelsk — stillingstitler, brancher, kompetencer, synonymer og relaterede ord der vil forekomme i relevante jobopslag. Tænk bredt.
+
+Eksempel for "marketing modebranchen":
+{"keywords":["marketing","markedsføring","fashion","mode","tøj","beklædning","tekstil","retail","brand","kommunikation","content","social media","kampagne","lifestyle","design"],"interpretation":"Marketing-stilling i modebranchen","sector":"Mode og retail"}`,
+
+  rankPrompt: `Du er en dansk jobmatcher. Søgning: "{query}" ({interpretation})
+
+Ranger disse {count} jobopslag. Returner KUN et JSON array af objekter — ingen tekst før eller efter:
+[{{"job_id": 123456, "reason": "Kort dansk begrundelse (max 8 ord)"}}, ...]
+
+Inkluder kun jobs der reelt er relevante. Returner gerne færre end {max} hvis kun få passer.
 
 Jobopslag:
 {jobs}`,
-  docPrompt: `Du er en dansk karriererådgiver og jobmatcher. Dokumenttype: "{doctype}"
+
+  docPrompt: `Du er en dansk karriererådgiver. Dokumenttype: "{doctype}"
 
 Dokument:
 ---
@@ -502,9 +538,10 @@ Dokument:
 
 {hint}
 
-Identificer kompetencer og præferencer fra dokumentet. Match mod disse {count} jobopslag. Svar KUN med et JSON array af job_id værdier for de {max} mest relevante — absolut ingen tekst før eller efter arrayet.
+Identificer kompetencer og præferencer. Returner KUN et JSON array af objekter — ingen tekst før eller efter:
+[{{"job_id": 123456, "reason": "Kort dansk begrundelse (max 8 ord)"}}, ...]
 
-Eksempel på korrekt svar: [538891, 538834, 538802]
+Inkluder kun jobs der reelt matcher. Returnér gerne færre end {max} hvis kun få passer.
 
 Jobopslag:
 {jobs}`,
@@ -749,10 +786,50 @@ function removeDoc() {
 // ════════════════════════════════════════════
 // TEXT SEARCH
 // ════════════════════════════════════════════
+
+// Danish synonym map — expands search terms to related words
+const SYNONYMS = {
+  'mode':          ['fashion','tøj','beklædning','tekstil','lifestyle','retail','butik','design'],
+  'modebranchen':  ['fashion','tøj','beklædning','tekstil','lifestyle','retail','mode','design','clothing'],
+  'modebranche':   ['fashion','tøj','beklædning','tekstil','lifestyle','retail','mode','design'],
+  'salg':          ['salgskonsulent','sælger','sales','account','kundeservice','b2b','b2c','forhandler'],
+  'marketing':     ['markedsføring','kommunikation','content','social media','some','kampagne','brand','digital'],
+  'it':            ['software','udvikler','developer','programmør','data','digital','teknologi','system'],
+  'sygeplejerske': ['sygeplejer','spl','sundhed','klinisk','patient','plejer'],
+  'lærer':         ['underviser','pædagog','lektor','undervisning','skole','uddannelse'],
+  'økonomi':       ['finans','regnskab','budget','controlling','bogholderi','revisor','cfo'],
+  'ledelse':       ['leder','manager','direktør','chef','teamlead','afdelingsleder'],
+  'ingeniør':      ['engineer','tekniker','konstruktør','maskine','elektro','civil'],
+  'jura':          ['jurist','advokat','juridisk','compliance','kontrakt'],
+  'hr':            ['personale','rekruttering','people','talent','medarbejder'],
+  'logistik':      ['supply chain','lager','transport','distribution','indkøb'],
+};
+
+function expandKeywords(kws) {
+  const expanded = new Set(kws);
+  for (const kw of kws) {
+    // Check synonym map
+    for (const [key, syns] of Object.entries(SYNONYMS)) {
+      if (kw === key || key.startsWith(kw) || kw.startsWith(key.slice(0, 5))) {
+        syns.forEach(s => expanded.add(s));
+        expanded.add(key);
+      }
+    }
+    // Also add stem — first 5 chars catches Danish inflections
+    // e.g. "sælger" matches "sælge", "salgs" matches "salg"
+    if (kw.length > 5) expanded.add(kw.slice(0, 5));
+  }
+  return [...expanded];
+}
+
 function kwScore(job, kws) {
   if (!kws.length) return 1;
   const txt = `${job.t} ${job.c} ${job.g} ${job.j} ${job.o} ${job.r} ${job.e} ${job.x}`.toLowerCase();
-  return kws.reduce((s, k) => s + (txt.includes(k) ? 1 : 0), 0);
+  // Score: exact keyword hits weighted higher than synonym/stem hits
+  const originalScore = kws.reduce((s, k) => s + (txt.includes(k) ? 2 : 0), 0);
+  const expanded = expandKeywords(kws);
+  const expandedScore = expanded.reduce((s, k) => s + (txt.includes(k) ? 1 : 0), 0);
+  return originalScore + expandedScore;
 }
 
 function isExpired(job) {
@@ -795,69 +872,131 @@ async function doSearch() {
   if (fCategory)   pool = pool.filter(j => j.g === fCategory);
   if (fEmployment) pool = pool.filter(j => j.e.includes(fEmployment));
 
-  console.log('[SEARCH] Query:', q);
-  console.log('[SEARCH] Total jobs in pool:', pool.length);
-  console.log('[SEARCH] Sample job_ids:', pool.slice(0,3).map(j => j.i));
-  console.log('[SEARCH] Sample titles:', pool.slice(0,3).map(j => j.t));
+  const aiEnabled = !!(WORKER_URL || localStorage.getItem('dkjobs_apikey'));
 
+  // ── STAGE 1: AI query expansion ──────────────────────────────
+  let interpretation = '';
+  let sector = '';
+  let aiKeywords = [];
+
+  if (aiEnabled) {
+    setPhase('AI forstår din søgning…', 'Analyserer og udvider søgeord');
+    try {
+      const expandPrompt = (cfg.expandPrompt || DEFAULT_CFG.expandPrompt)
+        .replace('{query}', q);
+      const expandResult = await rawAICall(expandPrompt, 300);
+      let parsed = null;
+      try { parsed = JSON.parse(expandResult.replace(/```[\w]*|```/g,'').trim()); } catch {}
+      if (!parsed) {
+        const match = expandResult.match(/\{[\s\S]*\}/);
+        if (match) try { parsed = JSON.parse(match[0]); } catch {}
+      }
+      if (parsed) {
+        aiKeywords    = parsed.keywords || [];
+        interpretation = parsed.interpretation || '';
+        sector        = parsed.sector || '';
+        console.log('[STAGE1] Interpretation:', interpretation);
+        console.log('[STAGE1] Keywords:', aiKeywords);
+      }
+    } catch(e) { console.error('[STAGE1] Expand error:', e); }
+  }
+
+  // ── KEYWORD FILTER using AI-expanded terms ────────────────────
   setPhase(`Filtrerer ${pool.length.toLocaleString('da-DK')} opslag…`);
-  const kws = q.toLowerCase().split(/\s+/).filter(k => k.length > 1);
-  let candidates = pool.map(j => ({ j, s: kwScore(j, kws) })).filter(x => x.s > 0)
-    .sort((a,b) => b.s - a.s).slice(0, MAX_KW).map(x => x.j);
 
-  console.log('[SEARCH] Keywords:', kws);
-  console.log('[SEARCH] Candidates after keyword filter:', candidates.length);
+  // Combine user keywords + AI keywords + static synonyms
+  const userKws   = q.toLowerCase().split(/\s+/).filter(k => k.length > 1);
+  const staticExp = expandKeywords(userKws);
+  const allKws    = [...new Set([...userKws, ...staticExp, ...aiKeywords.map(k => k.toLowerCase())])];
 
-  // No keyword matches → tell the user honestly, don't guess
+  console.log('[FILTER] All keywords used:', allKws);
+
+  let candidates = pool
+    .map(j => ({ j, s: scoreJob(j, userKws, allKws) }))
+    .filter(x => x.s > 0)
+    .sort((a,b) => b.s - a.s)
+    .slice(0, MAX_KW)
+    .map(x => x.j);
+
+  console.log('[FILTER] Candidates:', candidates.length);
+
   if (!candidates.length) {
     document.getElementById('searchResults').innerHTML = `
       <div class="state-box">
         <div class="state-icon">🔎</div>
         <div class="state-title">Ingen resultater for "${esc(q)}"</div>
-        <div class="state-sub">Ingen jobopslag matcher disse søgeord. Prøv færre eller andre ord — f.eks. kun stillingstitlen eller branchen.</div>
+        <div class="state-sub">Ingen jobopslag matcher søgningen — hverken direkte eller via relaterede termer. Prøv andre ord.</div>
       </div>`;
     searching = false;
     document.getElementById('searchBtn').disabled = false;
     return;
   }
 
-  console.log('[SEARCH] Top 3 candidates:', candidates.slice(0,3).map(j => ({ id: j.i, title: j.t })));
-
-  const aiEnabled = !!(WORKER_URL || localStorage.getItem('dkjobs_apikey'));
-  console.log('[SEARCH] AI enabled:', aiEnabled, '| WORKER_URL:', WORKER_URL || '(none)', '| Has API key:', !!localStorage.getItem('dkjobs_apikey'));
-
-  let ranked = candidates;
+  // ── STAGE 2: AI ranking with reasons ─────────────────────────
+  let results = [];
 
   if (aiEnabled && candidates.length > 1) {
-    setPhase(`AI analyserer ${candidates.length} kandidater…`);
+    setPhase(`AI rangerer ${candidates.length} kandidater…`, 'Vurderer hvert opslag mod din søgning');
     try {
-      const payload = candidates.map((j) => ({ job_id: j.i, title:j.t, company:j.c, category:j.g, type:j.j, employment:j.e, town:j.o, region:j.r, context:j.x }));
-      const prompt = (cfg.aiPrompt || DEFAULT_CFG.aiPrompt)
-        .replace('{query}', q).replace('{count}', candidates.length)
-        .replace('{max}', MAX_RES).replace('{jobs}', JSON.stringify(payload));
-      console.log('[SEARCH] Sending to AI, first job in payload:', payload[0]);
-      ranked = await callAI(prompt, candidates);
-      console.log('[SEARCH] AI returned ranked count:', ranked.length);
-      console.log('[SEARCH] Top 3 ranked:', ranked.slice(0,3).map(j => ({ id: j?.i, title: j?.t })));
+      const payload = candidates.map(j => ({
+        job_id: j.i, title: j.t, company: j.c, category: j.g,
+        employment: j.e, town: j.o, region: j.r, context: j.x
+      }));
+      const rankPrompt = (cfg.rankPrompt || DEFAULT_CFG.rankPrompt)
+        .replace('{query}', q)
+        .replace('{interpretation}', interpretation || q)
+        .replace('{count}', candidates.length)
+        .replace('{max}', MAX_RES)
+        .replace('{jobs}', JSON.stringify(payload));
+
+      const rankResult = await rawAICall(rankPrompt, 800);
+      console.log('[STAGE2] Raw response:', rankResult.slice(0, 400));
+
+      let ranked = null;
+      // Try parsing the array of objects
+      try { ranked = JSON.parse(rankResult.replace(/```[\w]*|```/g,'').trim()); } catch {}
+      if (!Array.isArray(ranked)) {
+        const match = rankResult.match(/\[[\s\S]*\]/);
+        if (match) try { ranked = JSON.parse(match[0]); } catch {}
+      }
+
+      if (Array.isArray(ranked) && ranked.length > 0) {
+        const map = {};
+        candidates.forEach(j => { if (String(j.i) !== '0') map[String(j.i)] = j; });
+
+        results = ranked
+          .map(item => {
+            const job = map[String(item.job_id)];
+            if (!job) return null;
+            const expired = isExpired(job);
+            if ((cfg.expiredMode||'badge') === 'hide' && expired) return null;
+            return { ...job, expired, reason: item.reason || '' };
+          })
+          .filter(Boolean)
+          .slice(0, MAX_RES);
+
+        console.log('[STAGE2] Matched results:', results.length);
+      } else {
+        console.warn('[STAGE2] Could not parse ranked results — falling back to keyword order');
+        results = candidates.slice(0, MAX_RES).map(j => ({ ...j, expired: isExpired(j), reason: '' }));
+      }
     } catch(e) {
-      console.error('[SEARCH] AI error:', e);
-      // AI failed — show keyword results but flag it
-      ranked = candidates;
+      console.error('[STAGE2] Ranking error:', e);
+      results = candidates.slice(0, MAX_RES).map(j => ({ ...j, expired: isExpired(j), reason: '' }));
     }
+  } else {
+    // No AI — use keyword order
+    results = candidates.slice(0, MAX_RES).map(j => ({ ...j, expired: isExpired(j), reason: '' }));
   }
 
-  // If AI returned nothing useful, show keyword results rather than empty
-  if (!ranked.length) ranked = candidates;
-
-  const results = await filterAndValidate(ranked);
-  console.log('[SEARCH] Final results after validation:', results.length);
-  renderResults(results, aiEnabled, `Søgning: "${q}"`);
+  lastResults = results;
+  renderResults(results, aiEnabled, q, interpretation, sector, aiKeywords);
   searching = false;
   document.getElementById('searchBtn').disabled = false;
 }
 
 // ════════════════════════════════════════════
-// DOCUMENT SEARCH
+// DOCUMENT SEARCH — two-stage AI pipeline
 // ════════════════════════════════════════════
 async function doDocSearch() {
   if (!docText || searching || !allJobs.length) return;
@@ -865,37 +1004,9 @@ async function doDocSearch() {
   document.getElementById('docSearchBtn').disabled = true;
 
   const hint = document.getElementById('docHintInput').value.trim();
-  const doctypeLabels = { cv:'CV', education:'Uddannelsesbeskrivelse', course:'Kursus/certifikat', wishlist:'Ønskeliste' };
-
-  let pool = applyHardFilters([...allJobs]);
-  setPhase(`Analyserer dokument mod ${pool.length.toLocaleString('da-DK')} opslag…`, 'AI matcher dit dokument mod jobmarkedet — dette tager ca. 10–20 sekunder');
-
-  // For doc search we send all candidates to AI (sample if huge)
-  let candidates = pool;
-  if (candidates.length > MAX_KW) {
-    // Spread sample across the dataset for diversity
-    const step = Math.floor(candidates.length / MAX_KW);
-    candidates = candidates.filter((_, i) => i % step === 0).slice(0, MAX_KW);
-  }
-
   const aiEnabled = !!(WORKER_URL || localStorage.getItem('dkjobs_apikey'));
-  let ranked = candidates;
 
-  if (aiEnabled) {
-    setPhase('AI analyserer dit dokument…', 'Matcher kompetencer og præferencer mod jobopslag');
-    try {
-      const payload = candidates.map((j, idx) => ({ job_id: j.i, title:j.t, company:j.c, category:j.g, type:j.j, employment:j.e, town:j.o, region:j.r, context:j.x }));
-      const hintText = hint ? `Brugerens ekstra kommentar: "${hint}"` : '';
-      const prompt = (cfg.docPrompt || DEFAULT_CFG.docPrompt)
-        .replace('{doctype}',    doctypeLabels[docType] || docType)
-        .replace('{doccontent}', docText.slice(0, DOC_MAX_CHARS))
-        .replace('{hint}',       hintText)
-        .replace('{count}',      candidates.length)
-        .replace('{max}',        MAX_RES)
-        .replace('{jobs}',       JSON.stringify(payload));
-      ranked = await callAI(prompt, candidates);
-    } catch(e) { console.error('Doc AI error:', e); }
-  } else {
+  if (!aiEnabled) {
     alert('Dokumentanalyse kræver en Anthropic API-nøgle. Klik 🔑 øverst til højre.');
     searching = false;
     document.getElementById('docSearchBtn').disabled = false;
@@ -903,104 +1014,167 @@ async function doDocSearch() {
     return;
   }
 
+  let pool = allJobs;
+  const fR = document.getElementById('filterRegion').value;
+  const fC = document.getElementById('filterCategory').value;
+  const fE = document.getElementById('filterEmployment').value;
+  if (fR) pool = pool.filter(j => j.r === fR);
+  if (fC) pool = pool.filter(j => j.g === fC);
+  if (fE) pool = pool.filter(j => j.e.includes(fE));
+
+  // Stage 1: extract keywords from document
+  setPhase('AI analyserer dit dokument…', 'Identificerer kompetencer og præferencer');
+  let aiKeywords = [];
+  let interpretation = '';
+  try {
+    const expandPrompt = `Du er en dansk karriererådgiver. Analysér dette dokument og returner KUN et JSON objekt:
+{"keywords": ["ord1","ord2",...], "interpretation": "Én sætning om hvad personen søger"}
+
+"keywords": 15-25 relevante søgeord på dansk og engelsk der matcher relevante jobopslag.
+
+Dokument:
+---
+${docText.slice(0, 4000)}
+---
+${hint ? `\nEkstra info fra brugeren: ${hint}` : ''}`;
+
+    const r = await rawAICall(expandPrompt, 400);
+    let parsed = null;
+    try { parsed = JSON.parse(r.replace(/```[\w]*|```/g,'').trim()); } catch {}
+    if (!parsed) { const m = r.match(/\{[\s\S]*\}/); if (m) try { parsed = JSON.parse(m[0]); } catch {} }
+    if (parsed) { aiKeywords = parsed.keywords || []; interpretation = parsed.interpretation || ''; }
+    console.log('[DOC S1] Interpretation:', interpretation, '| Keywords:', aiKeywords);
+  } catch(e) { console.error('[DOC S1] Error:', e); }
+
+  // Stage 2: keyword filter
+  setPhase(`Filtrerer ${pool.length.toLocaleString('da-DK')} opslag…`);
+  const allKws = [...new Set(aiKeywords.map(k => k.toLowerCase()))];
+  let candidates = pool
+    .map(j => ({ j, s: scoreJob(j, [], allKws) }))
+    .filter(x => x.s > 0)
+    .sort((a,b) => b.s - a.s)
+    .slice(0, MAX_KW)
+    .map(x => x.j);
+
+  if (!candidates.length) {
+    const step = Math.max(1, Math.floor(pool.length / MAX_KW));
+    candidates = pool.filter((_, i) => i % step === 0).slice(0, MAX_KW);
+  }
+  console.log('[DOC S2] Candidates:', candidates.length);
+
+  // Stage 3: rank with reasons
+  setPhase(`AI matcher ${candidates.length} opslag mod dokumentet…`);
+  let results = [];
+  try {
+    const payload = candidates.map(j => ({
+      job_id: j.i, title: j.t, company: j.c, category: j.g,
+      employment: j.e, town: j.o, region: j.r, context: j.x
+    }));
+    const hintText = hint ? `\nEkstra ønske: "${hint}"` : '';
+    const rankPrompt = (cfg.docPrompt || DEFAULT_CFG.docPrompt)
+      .replace('{doctype}', 'CV/dokument')
+      .replace('{doccontent}', docText.slice(0, DOC_MAX_CHARS))
+      .replace('{hint}', hintText)
+      .replace('{count}', candidates.length)
+      .replace('{max}', MAX_RES)
+      .replace('{jobs}', JSON.stringify(payload));
+
+    const rankResult = await rawAICall(rankPrompt, 900);
+    let ranked = null;
+    try { ranked = JSON.parse(rankResult.replace(/```[\w]*|```/g,'').trim()); } catch {}
+    if (!Array.isArray(ranked)) { const m = rankResult.match(/\[[\s\S]*?\]/); if (m) try { ranked = JSON.parse(m[0]); } catch {} }
+
+    if (Array.isArray(ranked) && ranked.length) {
+      const map = {};
+      candidates.forEach(j => { if (String(j.i) !== '0') map[String(j.i)] = j; });
+      results = ranked.map(item => {
+        const id = item?.job_id ?? item;
+        const job = map[String(id)];
+        if (!job) return null;
+        const expired = isExpired(job);
+        if ((cfg.expiredMode||'badge') === 'hide' && expired) return null;
+        return { ...job, expired, reason: item?.reason || '' };
+      }).filter(Boolean).slice(0, MAX_RES);
+    }
+    console.log('[DOC S3] Results:', results.length);
+  } catch(e) { console.error('[DOC S3] Error:', e); }
+
   lastQuery = `Dokument: ${docFileName}`;
-  const results = await filterAndValidate(ranked);
-  const contextLabel = `${doctypeLabels[docType]}: "${docFileName}"${hint ? ` · ${hint}` : ''}`;
-  renderResults(results, true, contextLabel);
+  lastResults = results;
+  renderResults(results, true, docFileName, interpretation, '', aiKeywords);
   searching = false;
   document.getElementById('docSearchBtn').disabled = false;
 }
 
 // ════════════════════════════════════════════
-// SHARED AI CALL
+// RAW AI CALL — returns text string
 // ════════════════════════════════════════════
-async function callAI(prompt, candidates) {
+async function rawAICall(prompt, maxTokens = 600) {
   const usingWorker = !!WORKER_URL;
   const apiKey = localStorage.getItem('dkjobs_apikey');
+  if (!usingWorker && !apiKey) throw new Error('No API key');
 
-  if (!usingWorker && !apiKey) {
-    console.warn('[AI] No API key and no Worker URL — skipping AI ranking.');
-    return candidates; // return keyword results as-is, no guessing
-  }
-
-  const payload = { model: MODEL, max_tokens: 600, messages: [{ role: 'user', content: prompt }] };
-
+  const payload = { model: MODEL, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] };
   let res;
   if (usingWorker) {
     res = await fetch(WORKER_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
   } else {
     res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:  'POST',
+      method: 'POST',
       headers: {
-        'Content-Type':       'application/json',
-        'x-api-key':          apiKey,
-        'anthropic-version':  '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
   }
-
   const data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'API error');
+  return data.content?.find(b => b.type === 'text')?.text || '';
+}
 
-  if (data.error) {
-    console.error('[AI] Anthropic API error:', data.error);
-    throw new Error(data.error.message || 'API error');
+// callAI used by doc search — returns ranked candidates array
+async function callAI(prompt, candidates) {
+  const txt = await rawAICall(prompt, 800);
+  // Try parsing array of objects [{job_id, reason}] or plain [id, id]
+  let items = null;
+  try { items = JSON.parse(txt.replace(/```[\w]*|```/g,'').trim()); } catch {}
+  if (!Array.isArray(items)) {
+    const match = txt.match(/\[[\s\S]*?\]/);
+    if (match) try { items = JSON.parse(match[0]); } catch {}
   }
-
-  const txt = data.content?.find(b => b.type === 'text')?.text || '';
-  console.log('[AI] Raw response:', txt.slice(0, 300));
-
-  let ids = null;
-  // Try direct parse first
-  try { ids = JSON.parse(txt.replace(/```[\w]*|```/g, '').trim()); } catch {}
-  // Fall back to extracting array from anywhere in text
-  if (!Array.isArray(ids)) {
-    const match = txt.match(/\[[\d,\s]+\]/);
-    if (match) try { ids = JSON.parse(match[0]); } catch {}
-  }
-
-  if (!Array.isArray(ids) || ids.length === 0) {
-    console.warn('[AI] No valid ID array found in response');
-    return candidates; // return keyword results as-is
-  }
-
-  console.log('[AI] Parsed IDs:', ids.slice(0, 5), '— total:', ids.length);
-
-  // Build lookup by job_id
+  if (!Array.isArray(items) || !items.length) return candidates;
   const map = {};
-  candidates.forEach(j => {
-    const id = String(j.i);
-    if (id && id !== '0') map[id] = j;
-  });
+  candidates.forEach(j => { if (String(j.i) !== '0') map[String(j.i)] = j; });
+  const ranked = items.map(item => {
+    const id = item?.job_id ?? item;
+    const job = map[String(id)];
+    return job ? { ...job, reason: item?.reason || '' } : null;
+  }).filter(Boolean);
+  return ranked.length ? ranked : candidates;
+}
 
-  const aiRanked = ids.map(id => map[String(id)]).filter(Boolean);
-  console.log('[AI] Matched back:', aiRanked.length, 'of', ids.length, 'IDs');
-  return aiRanked.slice(0, MAX_RES);
+// Job scoring: user keywords 3x weight, expanded/AI keywords 1x
+function scoreJob(job, userKws, allKws) {
+  const txt = `${job.t} ${job.c} ${job.g} ${job.j} ${job.o} ${job.r} ${job.e} ${job.x}`.toLowerCase();
+  const u = userKws.reduce((s, k) => s + (txt.includes(k) ? 3 : 0), 0);
+  const a = allKws.reduce((s, k)  => s + (txt.includes(k) ? 1 : 0), 0);
+  return u + a;
 }
 
 // ════════════════════════════════════════════
-// VALIDATE & FILTER
+// VALIDATE & FILTER (expiry only — no URL check)
 // ════════════════════════════════════════════
-async function filterAndValidate(ranked) {
-  setPhase('Sorterer resultater…');
+function filterExpired(jobs) {
   const mode = cfg.expiredMode || 'badge';
-  const results = [];
-  console.log('[VALIDATE] Checking', ranked.length, 'ranked jobs, mode:', mode);
-  for (const job of ranked) {
-    if (results.length >= MAX_RES) break;
-    if (!job) continue;
-    const expired = isExpired(job);
-    if (mode === 'hide' && expired) { console.log('[VALIDATE] Skipped expired:', job?.t); continue; }
-    results.push({ ...job, expired });
-  }
-  console.log('[VALIDATE] Final results:', results.length);
-  lastResults = results;
-  return results;
+  return jobs
+    .map(j => ({ ...j, expired: isExpired(j) }))
+    .filter(j => !(mode === 'hide' && j.expired));
 }
 
 function applyFiltersAndSearch() {
@@ -1011,19 +1185,32 @@ function applyFiltersAndSearch() {
 // ════════════════════════════════════════════
 // RENDER RESULTS
 // ════════════════════════════════════════════
-function renderResults(results, aiUsed, contextLabel) {
+function renderResults(results, aiUsed, contextLabel, interpretation, sector, keywords) {
   const el = document.getElementById('searchResults');
   if (!results.length) {
     el.innerHTML = `<div class="state-box"><div class="state-icon">🔎</div>
       <div class="state-title">Ingen relevante opslag fundet</div>
-      <div class="state-sub">AI'en fandt ingen gode matches i de aktuelle jobdata. Prøv andre søgeord eller et mere specifikt udtryk.</div></div>`;
+      <div class="state-sub">AI'en fandt ingen gode matches. Prøv andre søgeord eller et mere specifikt udtryk.</div></div>`;
     return;
   }
+
   const badge = aiUsed
     ? `<div class="ai-badge"><div class="ai-dot"></div>AI-rangeret</div>`
     : `<div class="ai-badge">Nøgleordsmatch</div>`;
 
+  // Interpretation banner
+  const interpBanner = (aiUsed && interpretation) ? `
+    <div class="ai-interpretation">
+      <div class="ai-interp-icon">🤖</div>
+      <div class="ai-interp-body">
+        <div class="ai-interp-label">AI forstår din søgning som</div>
+        <div class="ai-interp-text">${esc(interpretation)}${sector ? ` · ${esc(sector)}` : ''}</div>
+        ${keywords?.length ? `<div class="ai-interp-keywords">Søgte på: ${keywords.slice(0,14).map(k=>`<span class="ai-interp-kw">${esc(k)}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>` : '';
+
   el.innerHTML = `
+    ${interpBanner}
     <div class="results-meta">
       <div>
         <div class="results-title"><span>${results.length}</span> relevante opslag</div>
@@ -1043,6 +1230,7 @@ function renderResults(results, aiUsed, contextLabel) {
           <div class="job-body">
             <div class="job-title">${esc(job.t)}</div>
             <div class="job-company">${esc(job.c)}</div>
+            ${job.reason ? `<div class="job-match-reason">${esc(job.reason)}</div>` : ''}
             <div class="job-tags">
               ${job.o?`<span class="tag tag-loc">📍 ${esc(job.o)}</span>`:''}
               ${job.g?`<span class="tag tag-cat">${esc(job.g)}</span>`:''}
