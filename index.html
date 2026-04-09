@@ -47,117 +47,74 @@ header {
 .icon-btn:hover { border-color: var(--orange); }
 
 /* ── HERO ── */
-.hero { background: var(--bg2); border-bottom: 1.5px solid var(--border); padding: 56px 40px 48px; }
-.hero-inner { max-width: 820px; margin: 0 auto; }
-.hero-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); margin-bottom: 16px; }
-.hero-title { font-size: clamp(28px, 4vw, 48px); font-weight: 800; line-height: 1.08; letter-spacing: -1px; color: var(--black); margin-bottom: 10px; }
-.hero-sub { font-size: 15px; color: var(--gray2); font-weight: 400; margin-bottom: 32px; line-height: 1.6; max-width: 560px; }
+.hero { background: var(--bg2); border-bottom: 1.5px solid var(--border); padding: 40px 40px 32px; }
+.hero-inner { max-width: 960px; margin: 0 auto; }
+.hero-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); margin-bottom: 8px; }
+.hero-title { font-size: clamp(24px, 3vw, 36px); font-weight: 800; line-height: 1.1; letter-spacing: -0.5px; color: var(--black); margin-bottom: 4px; }
+.hero-sub { font-size: 13.5px; color: var(--gray2); font-weight: 400; margin-bottom: 24px; line-height: 1.6; max-width: 540px; }
 
-/* ── SEARCH MODE TOGGLE ── */
-.mode-toggle {
-  display: flex; gap: 0; background: var(--bg3); border-radius: 10px;
-  padding: 4px; margin-bottom: 20px; width: fit-content;
-}
-.mode-btn {
-  padding: 9px 20px; border-radius: 7px; border: none; font-family: var(--font);
-  font-size: 13px; font-weight: 600; cursor: pointer; background: transparent;
-  color: var(--gray2); transition: all 0.15s; display: flex; align-items: center; gap: 7px;
-}
-.mode-btn:hover { color: var(--black); }
-.mode-btn.active { background: var(--bg); color: var(--black); box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
-.mode-btn .mode-icon { font-size: 15px; }
+/* ── TWO-COLUMN SEARCH LAYOUT ── */
+.search-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 0; }
+.search-col { background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+.col-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.col-desc { font-size: 12px; color: var(--gray3); margin-bottom: 12px; line-height: 1.5; }
+.filter-warning { display: flex; align-items: flex-start; gap: 7px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 7px; padding: 8px 10px; margin-bottom: 12px; font-size: 11.5px; color: #92400E; line-height: 1.4; }
+.filter-warning-icon { flex-shrink: 0; }
+.filter-stack { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+.filter-row { display: flex; flex-direction: column; gap: 2px; }
+.filter-row-label { font-size: 11px; font-weight: 600; color: var(--gray2); }
 
-/* ── TEXT SEARCH MODE ── */
-.search-row { display: flex; gap: 10px; margin-bottom: 16px; }
-.search-input {
-  flex: 1; padding: 15px 20px; font-family: var(--font); font-size: 15px;
-  border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg);
-  color: var(--black); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
-}
+/* Search inputs */
+.search-input { width: 100%; padding: 11px 14px; font-family: var(--font); font-size: 14px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--bg2); color: var(--black); outline: none; transition: border-color 0.2s, box-shadow 0.2s; margin-bottom: 10px; }
 .search-input::placeholder { color: var(--gray4); }
-.search-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(224,78,33,0.1); }
-.search-btn {
-  padding: 15px 34px; background: var(--orange); color: #fff; border: none;
-  border-radius: 10px; font-family: var(--font); font-size: 15px; font-weight: 700;
-  cursor: pointer; white-space: nowrap; transition: background 0.15s, transform 0.1s;
-}
+.search-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(224,78,33,0.08); background: var(--bg); }
+.search-btn { width: 100%; padding: 11px; background: var(--orange); color: #fff; border: none; border-radius: 8px; font-family: var(--font); font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; letter-spacing: 0.01em; }
 .search-btn:hover { background: var(--orange2); }
-.search-btn:active { transform: scale(0.98); }
-.search-btn:disabled { background: var(--gray4); cursor: default; transform: none; }
-.hint-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.hint-chip { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12.5px; color: var(--gray2); cursor: pointer; transition: all 0.15s; font-weight: 500; }
-.hint-chip:hover { border-color: var(--orange); color: var(--orange); }
+.search-btn:disabled { background: var(--gray4); cursor: default; }
+.search-btn.secondary { background: var(--black); }
+.search-btn.secondary:hover { background: var(--orange); }
 
-/* ── DOCUMENT UPLOAD MODE ── */
-#docMode { display: none; }
+/* Filter selects */
+.filter-select { width: 100%; padding: 8px 11px; border: 1.5px solid var(--border); border-radius: 7px; font-family: var(--font); font-size: 13px; color: var(--gray1); background: var(--bg2); outline: none; cursor: pointer; transition: border-color 0.15s; }
+.filter-select:focus { border-color: var(--orange); background: var(--bg); }
 
-.doc-upload-area {
-  border: 2px dashed var(--border); border-radius: 12px; padding: 32px 24px;
-  text-align: center; cursor: pointer; background: var(--bg); transition: all 0.2s;
-  margin-bottom: 16px; position: relative;
-}
+/* Doc upload inside column */
+.doc-upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 18px 14px; text-align: center; cursor: pointer; background: var(--bg2); transition: all 0.2s; margin-bottom: 10px; }
 .doc-upload-area:hover, .doc-upload-area.drag { border-color: var(--orange); background: #FFF8F5; }
 .doc-upload-area input { display: none; }
-.doc-upload-icon { font-size: 36px; margin-bottom: 10px; }
-.doc-upload-title { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
-.doc-upload-hint { font-size: 13px; color: var(--gray3); }
+.doc-upload-icon { font-size: 26px; margin-bottom: 5px; }
+.doc-upload-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; color: var(--black); }
+.doc-upload-hint { font-size: 11px; color: var(--gray3); }
 
-/* Uploaded doc preview */
-.doc-preview {
-  display: none;
-  background: var(--bg); border: 1.5px solid var(--orange);
-  border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
-  gap: 14px; align-items: flex-start;
-}
+/* Doc preview */
+.doc-preview { display: none; background: var(--bg2); border: 1.5px solid var(--orange); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; gap: 10px; align-items: flex-start; }
 .doc-preview.visible { display: flex; }
-.doc-preview-icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+.doc-preview-icon { font-size: 20px; flex-shrink: 0; }
 .doc-preview-body { flex: 1; min-width: 0; }
-.doc-preview-name { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.doc-preview-excerpt { font-size: 12px; color: var(--gray2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.doc-preview-chars { font-size: 11px; color: var(--gray3); margin-top: 4px; font-weight: 500; }
-.doc-remove-btn { flex-shrink: 0; width: 28px; height: 28px; border: 1.5px solid var(--border); border-radius: 6px; background: none; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; color: var(--gray3); transition: all 0.15s; }
+.doc-preview-name { font-size: 12.5px; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-preview-excerpt { font-size: 11px; color: var(--gray2); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+.doc-preview-chars { font-size: 10.5px; color: var(--gray3); margin-top: 2px; }
+.doc-remove-btn { flex-shrink: 0; width: 22px; height: 22px; border: 1px solid var(--border); border-radius: 5px; background: none; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; color: var(--gray3); transition: all 0.15s; }
 .doc-remove-btn:hover { border-color: #E63B2E; color: #E63B2E; }
-
-/* Optional free-text hint for doc mode */
-.doc-hint-row { display: flex; gap: 10px; margin-bottom: 0; }
-.doc-hint-input {
-  flex: 1; padding: 12px 16px; font-family: var(--font); font-size: 14px;
-  border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg);
-  color: var(--black); outline: none; transition: border-color 0.2s;
-}
+.doc-hint-input { width: 100%; padding: 8px 11px; font-family: var(--font); font-size: 12.5px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--bg2); color: var(--black); outline: none; margin-bottom: 10px; transition: border-color 0.15s; }
 .doc-hint-input::placeholder { color: var(--gray4); }
-.doc-hint-input:focus { border-color: var(--orange); }
-.doc-search-btn {
-  padding: 12px 28px; background: var(--orange); color: #fff; border: none;
-  border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 700;
-  cursor: pointer; white-space: nowrap; transition: background 0.15s;
-}
-.doc-search-btn:hover { background: var(--orange2); }
-.doc-search-btn:disabled { background: var(--gray4); cursor: default; }
+.doc-hint-input:focus { border-color: var(--orange); background: var(--bg); }
 
-.doc-type-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.doc-type-chip {
-  padding: 5px 13px; border: 1.5px solid var(--border); border-radius: 20px;
-  font-size: 12px; color: var(--gray2); cursor: pointer; transition: all 0.15s; font-weight: 500;
-}
-.doc-type-chip:hover, .doc-type-chip.selected { border-color: var(--orange); color: var(--orange); background: #FFF8F5; }
-
-/* ── FILTERS ── */
-.filters-bar {
-  background: var(--bg); border-bottom: 1.5px solid var(--border);
-  padding: 10px 40px; display: flex; align-items: center; gap: 10px; overflow-x: auto; scrollbar-width: none;
-}
-.filters-bar::-webkit-scrollbar { display: none; }
-.filter-label { font-size: 11px; font-weight: 700; color: var(--gray3); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
-.filter-select { padding: 7px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--font); font-size: 13px; color: var(--gray1); background: var(--bg); outline: none; cursor: pointer; transition: border-color 0.15s; }
-.filter-select:focus { border-color: var(--orange); }
+/* ── SAMPLE PROMPTS STRIP ── */
+.samples-strip { background: var(--bg); border-bottom: 1.5px solid var(--border); padding: 12px 40px; }
+.samples-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.samples-label { font-size: 11px; font-weight: 700; color: var(--gray3); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; flex-shrink: 0; }
+.hint-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+.hint-chip { padding: 5px 13px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--gray2); cursor: pointer; transition: all 0.15s; font-weight: 500; background: var(--bg); white-space: nowrap; }
+.hint-chip:hover { border-color: var(--orange); color: var(--orange); background: #FFF8F5; }
 
 /* ── MAIN ── */
-.main { max-width: 880px; margin: 0 auto; padding: 44px 24px 120px; }
+.main { max-width: 880px; margin: 0 auto; padding: 36px 24px 120px; }
 
 /* ── RESULTS ── */
 .results-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1.5px solid var(--border); }
 .results-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+
 .results-title span { color: var(--orange); }
 .results-context { font-size: 12px; color: var(--gray3); margin-top: 3px; font-style: italic; }
 
@@ -301,19 +258,278 @@ code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 
 .modal-save:hover { background: var(--orange); }
 .modal-skip { display: block; text-align: center; margin-top: 10px; font-size: 13px; color: var(--gray3); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: var(--font); width: 100%; }
 
-@media (max-width: 640px) {
+/* ── README MODAL ── */
+.readme-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px); z-index: 600;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: fadeUp 0.2s ease;
+}
+.readme-modal {
+  background: var(--bg); border-radius: 16px;
+  width: 100%; max-width: 780px; max-height: 88vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 32px 100px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+.readme-header {
+  padding: 22px 28px 18px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.readme-header-left { display: flex; align-items: center; gap: 12px; }
+.readme-header-icon {
+  width: 38px; height: 38px; background: var(--orange);
+  border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.readme-header-title { font-size: 19px; font-weight: 800; letter-spacing: -0.3px; }
+.readme-header-sub { font-size: 12px; color: var(--gray3); margin-top: 1px; }
+.readme-close {
+  width: 34px; height: 34px; border: 1.5px solid var(--border);
+  border-radius: 8px; background: none; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+  color: var(--gray3); transition: all 0.15s;
+}
+.readme-close:hover { border-color: var(--orange); color: var(--orange); }
+.readme-body {
+  overflow-y: auto; padding: 28px 32px 36px;
+  font-size: 14px; line-height: 1.75; color: var(--gray1);
+}
+.readme-body h2 {
+  font-size: 18px; font-weight: 800; color: var(--black);
+  letter-spacing: -0.3px; margin: 32px 0 10px;
+  padding-bottom: 8px; border-bottom: 1.5px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.readme-body h2:first-child { margin-top: 0; }
+.readme-body h3 {
+  font-size: 14px; font-weight: 700; color: var(--black);
+  margin: 20px 0 6px;
+}
+.readme-body p { margin-bottom: 12px; }
+.readme-body ul, .readme-body ol {
+  padding-left: 20px; margin-bottom: 14px;
+}
+.readme-body li { margin-bottom: 6px; }
+.readme-body strong { color: var(--black); font-weight: 700; }
+.readme-body .step-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin: 16px 0;
+}
+.readme-body .step-card {
+  background: var(--bg2); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 16px;
+}
+.readme-body .step-num {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--orange); margin-bottom: 6px;
+}
+.readme-body .step-title {
+  font-size: 13px; font-weight: 700; color: var(--black); margin-bottom: 4px;
+}
+.readme-body .step-text { font-size: 12px; color: var(--gray2); line-height: 1.5; }
+.readme-body .highlight-box {
+  background: #FFF8F5; border: 1.5px solid #F5C5B0;
+  border-radius: 10px; padding: 16px 18px; margin: 16px 0;
+  font-size: 13px;
+}
+.readme-body .highlight-box strong { color: var(--orange); }
+.readme-body .tag-demo {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 4px; font-size: 11.5px;
+  font-weight: 600; vertical-align: middle; margin: 0 2px;
+}
+.readme-body .tag-demo.loc { background: #EBF3FF; color: #2563EB; }
+.readme-body .tag-demo.cat { background: var(--bg2); color: var(--gray2); border: 1px solid var(--border); }
+.readme-body .tag-demo.emp { background: #FFF3EE; color: var(--orange); }
+.readme-body .tag-demo.warn { background: #FFFBEB; color: #B45309; }
+.readme-body .divider { height: 1px; background: var(--border); margin: 24px 0; }
+@media (max-width: 600px) {
+  .readme-body .step-grid { grid-template-columns: 1fr; }
+  .readme-body { padding: 20px; }
+}
+@media (max-width: 700px) {
   header { padding: 0 16px; }
-  .hero { padding: 40px 16px 44px; }
-  .filters-bar { padding: 10px 16px; }
-  .main { padding: 28px 16px 120px; }
+  .hero { padding: 28px 16px 24px; }
+  .search-columns { grid-template-columns: 1fr; }
+  .samples-strip { padding: 12px 16px; }
+  .main { padding: 24px 16px 120px; }
   .job-card { flex-wrap: wrap; }
   .card-right { flex-direction: row; align-self: auto; }
   .header-center { display: none; }
   .data-grid { grid-template-columns: 1fr; }
 }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
 </style>
 </head>
 <body>
+
+<!-- README MODAL -->
+<div id="readmeModal" class="readme-backdrop" style="display:none" onclick="if(event.target===this)closeReadme()">
+  <div class="readme-modal">
+    <div class="readme-header">
+      <div class="readme-header-left">
+        <div class="readme-header-icon">📖</div>
+        <div>
+          <div class="readme-header-title">Sådan virker DKJOBS</div>
+          <div class="readme-header-sub">Guide til søgning, dokumentanalyse og genvejsliste</div>
+        </div>
+      </div>
+      <button class="readme-close" onclick="closeReadme()">✕</button>
+    </div>
+    <div class="readme-body">
+
+      <!-- INTRO -->
+      <p>DKJOBS er en AI-drevet jobsøgemaskine over det danske jobmarked. I modsætning til traditionelle søgemaskiner forstår DKJOBS <strong>hvad du mener</strong> — ikke blot de præcise ord du skriver. Du kan søge frit, uploade dit CV eller din uddannelsesbeskrivelse, og lade AI'en finde de mest relevante opslag for dig.</p>
+
+      <div class="highlight-box">
+        <strong>Hvorfor er dette anderledes end en almindelig jobsøgemaskine?</strong><br>
+        En traditionel søgemaskine finder kun opslag der indeholder præcis dine søgeord. DKJOBS bruger Claude AI (fra Anthropic) til at forstå din hensigt, udvide din søgning med relaterede termer og rangere resultater efter ægte relevans — ikke bare tekstmatch.
+      </div>
+
+      <!-- SØGEPIPELINEN -->
+      <h2>🔍 Sådan fungerer søgningen — trin for trin</h2>
+      <p>Når du søger, gennemgår din forespørgsel en tre-trins AI-pipeline:</p>
+
+      <div class="step-grid">
+        <div class="step-card">
+          <div class="step-num">Trin 1</div>
+          <div class="step-title">AI forstår søgningen</div>
+          <div class="step-text">Claude analyserer din fritekst og genererer 15–20 relevante søgeord på <em>både dansk og engelsk</em> — stillingstitler, branchetermer, kompetencer og synonymer du ikke selv har skrevet.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">Trin 2</div>
+          <div class="step-title">Kandidatfilter</div>
+          <div class="step-text">Alle ~20.000 jobopslag scannes med de AI-genererede søgeord. De 80 bedste kandidater udvælges til AI-analyse — dette sker på millisekunder.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">Trin 3</div>
+          <div class="step-title">AI rangerer og begrunder</div>
+          <div class="step-text">Claude læser de 80 kandidater og returnerer kun dem der reelt er relevante — med en kort begrundelse for hvert match. Ingen fyld, ingen gætterier.</div>
+        </div>
+      </div>
+
+      <p>Over søgeresultaterne vises en <strong>orange boks</strong> der fortæller dig, hvordan AI'en har forstået din søgning og hvilke søgeord den har brugt. Dette giver fuld gennemsigtighed.</p>
+
+      <div class="divider"></div>
+
+      <!-- FRITEKST SØGNING -->
+      <h2>✍️ Fritekst-søgning</h2>
+      <h3>Sådan søger du bedst</h3>
+      <p>Du behøver ikke tænke på præcise jobtitler eller kategorier. Beskriv bare hvad du leder efter i naturligt sprog:</p>
+      <ul>
+        <li><strong>"sygeplejerske i Aarhus med erfaring inden for psykiatri"</strong> — angiver stilling, geografi og speciale</li>
+        <li><strong>"marketing og salg i modebranchen"</strong> — AI'en finder automatisk termer som fashion, retail, tøj, brand</li>
+        <li><strong>"junior IT-udvikler Java startup København"</strong> — kombiner niveau, teknologi, virksomhedstype og by</li>
+        <li><strong>"deltidsjob pædagog Sjælland"</strong> — ansættelsesform, fag og region</li>
+      </ul>
+      <h3>Tips</h3>
+      <ul>
+        <li>Skriv gerne på dansk — men AI'en forstår også engelske termer</li>
+        <li>Jo mere specifik du er, jo færre (men mere præcise) resultater får du</li>
+        <li>Hvis du får nul resultater, prøv at forkorte søgningen til 2–3 kernetermer</li>
+        <li>Eksempel-søgningerne under søgefeltet giver inspiration til format</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <!-- DOKUMENT UPLOAD -->
+      <h2>📄 Upload dokument</h2>
+      <p>I stedet for at skrive en søgning kan du uploade et dokument — dit CV, en uddannelsesbeskrivelse, et kursusbevis eller en ønskeliste. AI'en analyserer dokumentet og matcher det mod jobmarkedet.</p>
+
+      <h3>Understøttede formater</h3>
+      <ul>
+        <li><strong>PDF</strong> — CV'er, uddannelsesbeskrivelser, kursusbeviser</li>
+        <li><strong>Word (.docx)</strong> — ansøgninger, profiler, kompetencebeskrivelser</li>
+        <li><strong>Tekst (.txt)</strong> — kopier og indsæt tekst direkte</li>
+      </ul>
+
+      <h3>Hvad sker der med dokumentet?</h3>
+      <p>Teksten udtrækkes lokalt i din browser og sendes til Claude AI for analyse. Dokumentet gemmes aldrig på en server — kun teksten bruges midlertidigt til at generere søgeord og rangere jobopslag.</p>
+
+      <h3>Ekstra kommentar</h3>
+      <p>Under upload-zonen kan du tilføje en fri kommentar der præciserer dine ønsker — f.eks. <em>"Foretrækker Aarhus"</em>, <em>"Kun fuldtid"</em> eller <em>"Ikke startup"</em>. Dette tages med i AI-analysen.</p>
+
+      <div class="divider"></div>
+
+      <!-- FILTRE -->
+      <h2>🎯 Filtre</h2>
+      <p>Under søgefeltet finder du tre filtre der indsnævrer søgningen <em>inden</em> AI-analysen sker:</p>
+      <ul>
+        <li><strong>Region</strong> — begræns til en specifik del af Danmark</li>
+        <li><strong>Kategori</strong> — vælg en overordnet branchekategori</li>
+        <li><strong>Ansættelsesform</strong> — fastansættelse, studiejob, praktik, vikar m.fl.</li>
+      </ul>
+      <p>Filtrene kombineres frit med både fritekst-søgning og dokumentupload. Ændrer du et filter mens resultater vises, genstartes søgningen automatisk.</p>
+
+      <div class="divider"></div>
+
+      <!-- RESULTATER -->
+      <h2>📋 Forstå resultaterne</h2>
+      <p>Hvert jobkort indeholder:</p>
+      <ul>
+        <li><strong>Rangering (#1, #2…)</strong> — de første tre fremhæves med orange farve som topmatches</li>
+        <li><strong>Jobtitel og virksomhed</strong></li>
+        <li><strong>Matchbegrundelse</strong> — en kort kursiv sætning der forklarer <em>hvorfor</em> AI'en valgte dette opslag</li>
+        <li><strong>Tags</strong> — viser lokation <span class="tag-demo loc">📍 København</span>, kategori <span class="tag-demo cat">IT</span>, ansættelsesform <span class="tag-demo emp">Praktik</span> og evt. <span class="tag-demo warn">⚠️ Frist muligvis udløbet</span></li>
+        <li><strong>Se job →</strong> — åbner det originale jobopslag i en ny fane</li>
+      </ul>
+
+      <h3>Udløbne opslag</h3>
+      <p>Datasættet dækker de seneste to måneder. Opslag med en passeret ansøgningsfrist markeres med <span class="tag-demo warn">⚠️ Frist muligvis udløbet</span>. Du kan i Indstillinger vælge at skjule dem fuldstændigt eller vise dem normalt.</p>
+
+      <div class="divider"></div>
+
+      <!-- GENVEJSLISTE + PDF -->
+      <h2>⭐ Genvejsliste og PDF-download</h2>
+      <p>Du kan gemme interessante jobopslag til en personlig genvejsliste på tværs af søgninger:</p>
+      <ol>
+        <li>Klik på <strong>☆-ikonet</strong> til venstre på et jobkort — kortet fremhæves med orange kant</li>
+        <li>En flydende bjælke dukker op nederst på siden med antal gemte opslag</li>
+        <li>Klik <strong>⬇ Download PDF</strong> for at generere en overskuelig PDF-liste</li>
+      </ol>
+
+      <h3>PDF-filen indeholder</h3>
+      <ul>
+        <li>Jobtitel, virksomhed, by og kategori for hvert gemt opslag</li>
+        <li>Matchbegrundelse (hvis søgningen brugte AI-rangering)</li>
+        <li>Klikbart domænenavn der åbner det originale opslag direkte</li>
+        <li>Dato for download og din søgetekst øverst</li>
+      </ul>
+      <p>Klik <strong>Ryd liste</strong> i bjælken for at nulstille og starte forfra.</p>
+
+      <div class="divider"></div>
+
+      <!-- INDSTILLINGER -->
+      <h2>⚙️ Indstillinger</h2>
+      <p>Under fanen <strong>Indstillinger</strong> kan du tilpasse applikationen:</p>
+      <ul>
+        <li><strong>Tekster</strong> — ændr overskrift, undertekst og søgefelt-placeholder</li>
+        <li><strong>Eksempel-søgninger</strong> — rediger chips under søgefeltet frit</li>
+        <li><strong>AI-prompts</strong> — avanceret: tilpas præcis hvad AI'en instrueres til at gøre ved søgning og dokumentanalyse</li>
+        <li><strong>Udløbne opslag</strong> — vælg om udløbne opslag skal skjules, vises normalt eller markeres</li>
+      </ul>
+      <p>Alle indstillinger gemmes lokalt i din browser og bevares på tværs af sessioner.</p>
+
+      <div class="divider"></div>
+
+      <!-- TEKNISK -->
+      <h2>🤖 Teknisk baggrund</h2>
+      <p>DKJOBS demonstrerer hvordan AI kan erstatte traditionel kategoriseret søgning og give bedre, mere personlige resultater:</p>
+      <ul>
+        <li><strong>Model:</strong> Claude Sonnet 4 (Anthropic) — samme model bruges til alle tre pipeline-trin</li>
+        <li><strong>Data:</strong> Danske jobopslag fra de seneste 1–2 måneder, opdateret månedligt</li>
+        <li><strong>Privacy:</strong> Ingen brugerdata gemmes på serveren. API-nøgle gemmes kun lokalt i browseren. Dokumenter sendes aldrig til serveren</li>
+        <li><strong>Uden API-nøgle:</strong> Søgning fungerer med ren nøgleordsmatch — ingen AI-rangering eller dokumentanalyse</li>
+      </ul>
+
+    </div>
+  </div>
+</div>
 
 <!-- API MODAL -->
 <div id="apiModal" class="modal-backdrop" style="display:none">
@@ -336,6 +552,7 @@ code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 
   </div>
   <div class="header-right">
     <div class="status-pill" id="statusPill">Indlæser…</div>
+    <button class="icon-btn" onclick="showReadme()" title="Sådan virker søgningen">📖</button>
     <button class="icon-btn" onclick="showApiModal()" title="API-nøgle">🔑</button>
   </div>
 </header>
@@ -346,69 +563,97 @@ code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 
     <div class="hero-inner">
       <div class="hero-label"  id="heroLabel">Det danske jobmarked · AI-drevet søgning</div>
       <h1 class="hero-title"  id="heroTitle">Find dit næste job i Danmark</h1>
-      <p  class="hero-sub"    id="heroSub">Beskriv hvad du leder efter — eller upload et dokument og lad AI'en matche det mod jobmarkedet.</p>
+      <p  class="hero-sub"    id="heroSub">Beskriv hvad du leder efter med egne ord — eller upload dit CV og lad AI'en matche det mod jobmarkedet.</p>
 
-      <!-- MODE TOGGLE -->
-      <div class="mode-toggle">
-        <button class="mode-btn active" id="modeTextBtn" onclick="setMode('text')">
-          <span class="mode-icon">🔍</span> Fritekst-søgning
-        </button>
-        <button class="mode-btn" id="modeDocBtn" onclick="setMode('doc')">
-          <span class="mode-icon">📄</span> Upload dokument
-        </button>
-      </div>
+      <div class="search-columns">
 
-      <!-- TEXT SEARCH MODE -->
-      <div id="textMode">
-        <div class="search-row">
-          <input class="search-input" id="searchInput" placeholder="F.eks. 'sygeplejerske i Aarhus'" onkeydown="if(event.key==='Enter')doSearch()">
+        <!-- LEFT: FREE TEXT SEARCH -->
+        <div class="search-col free">
+          <div class="col-label">🔍 Fri søgning</div>
+          <div class="col-desc">Beskriv hvad du leder efter i naturligt sprog. AI'en forstår din hensigt og finder de mest relevante opslag.</div>
+
+          <input class="search-input" id="searchInput"
+            placeholder="F.eks. 'sygeplejerske i Aarhus'" onkeydown="if(event.key==='Enter')doSearch()">
           <button class="search-btn" id="searchBtn" onclick="doSearch()" disabled>Søg →</button>
-        </div>
-        <div class="hint-chips" id="hintChips"></div>
-      </div>
 
-      <!-- DOCUMENT UPLOAD MODE -->
-      <div id="docMode">
+          <div style="margin-top:14px;padding-top:14px;border-top:1.5px solid var(--border)">
+            <div class="col-label" style="margin-bottom:6px">📄 Eller upload dit CV / uddannelse</div>
+            <div class="col-desc" style="margin-bottom:10px">AI'en analyserer dokumentet og finder matchende jobs automatisk.</div>
 
-        <!-- Upload zone -->
-        <div class="doc-upload-area" id="docUploadArea"
-          onclick="document.getElementById('docFileInput').click()"
-          ondragover="event.preventDefault();this.classList.add('drag')"
-          ondragleave="this.classList.remove('drag')"
-          ondrop="handleDocDrop(event)">
-          <input type="file" id="docFileInput" accept=".pdf,.txt,.docx,.doc" onchange="handleDocFile(event)">
-          <div class="doc-upload-icon">📄</div>
-          <div class="doc-upload-title">Upload dit dokument her</div>
-          <div class="doc-upload-hint">PDF, Word (.docx) eller TXT · Klik eller træk-og-slip</div>
-        </div>
+            <div class="doc-upload-area" id="docUploadArea"
+              onclick="document.getElementById('docFileInput').click()"
+              ondragover="event.preventDefault();this.classList.add('drag')"
+              ondragleave="this.classList.remove('drag')"
+              ondrop="handleDocDrop(event)">
+              <input type="file" id="docFileInput" accept=".pdf,.txt,.docx,.doc" onchange="handleDocFile(event)">
+              <div class="doc-upload-icon">📂</div>
+              <div class="doc-upload-title">Klik eller træk fil hertil</div>
+              <div class="doc-upload-hint">PDF, Word (.docx) eller TXT</div>
+            </div>
 
-        <!-- Doc preview (shown after upload) -->
-        <div class="doc-preview" id="docPreview">
-          <div class="doc-preview-icon" id="docPreviewIcon">📄</div>
-          <div class="doc-preview-body">
-            <div class="doc-preview-name"    id="docPreviewName"></div>
-            <div class="doc-preview-excerpt" id="docPreviewExcerpt"></div>
-            <div class="doc-preview-chars"   id="docPreviewChars"></div>
+            <div class="doc-preview" id="docPreview">
+              <div class="doc-preview-icon" id="docPreviewIcon">📄</div>
+              <div class="doc-preview-body">
+                <div class="doc-preview-name"    id="docPreviewName"></div>
+                <div class="doc-preview-excerpt" id="docPreviewExcerpt"></div>
+                <div class="doc-preview-chars"   id="docPreviewChars"></div>
+              </div>
+              <button class="doc-remove-btn" onclick="removeDoc()" title="Fjern dokument">✕</button>
+            </div>
+
+            <input class="doc-hint-input" id="docHintInput"
+              placeholder="Tilføj evt. præferencer — f.eks. 'Foretrækker Aarhus' eller 'Kun fuldtid'">
+            <button class="search-btn secondary" id="docSearchBtn" onclick="doDocSearch()" disabled>Analysér dokument →</button>
           </div>
-          <button class="doc-remove-btn" onclick="removeDoc()" title="Fjern dokument">✕</button>
         </div>
 
-        <!-- Optional extra hint -->
-        <div class="doc-hint-row">
-          <input class="doc-hint-input" id="docHintInput" placeholder="Tilføj evt. en ekstra kommentar — f.eks. 'Foretrækker Aarhus' eller 'Fuld tid'">
-          <button class="doc-search-btn" id="docSearchBtn" onclick="doDocSearch()" disabled>Analysér →</button>
+        <!-- RIGHT: FILTERED SEARCH -->
+        <div class="search-col filtered">
+          <div class="col-label">🎯 Søg med filtre</div>
+          <div class="col-desc">Vælg filtre for at indsnævre søgningen til en bestemt region, branche eller ansættelsesform.</div>
+
+          <div class="filter-warning">
+            <div class="filter-warning-icon">⚠️</div>
+            <div><strong>Vælg filtre først</strong> — filtrene begrænser hvilke opslag AI'en søger i. Vælg inden du søger, ellers gælder fri søgning uden begrænsning.</div>
+          </div>
+
+          <div class="filter-stack">
+            <div class="filter-row">
+              <div class="filter-row-label">Region</div>
+              <select class="filter-select" id="filterRegion" onchange="applyFiltersAndSearch()">
+                <option value="">Alle regioner</option>
+              </select>
+            </div>
+            <div class="filter-row">
+              <div class="filter-row-label">Kategori / branche</div>
+              <select class="filter-select" id="filterCategory" onchange="applyFiltersAndSearch()">
+                <option value="">Alle kategorier</option>
+              </select>
+            </div>
+            <div class="filter-row">
+              <div class="filter-row-label">Ansættelsesform</div>
+              <select class="filter-select" id="filterEmployment" onchange="applyFiltersAndSearch()">
+                <option value="">Alle ansættelsesformer</option>
+              </select>
+            </div>
+          </div>
+
+          <input class="search-input" id="searchInputFiltered"
+            placeholder="F.eks. 'salgskonsulent' eller 'pædagog'"
+            onkeydown="if(event.key==='Enter')doFilteredSearch()">
+          <button class="search-btn secondary" id="filteredSearchBtn" onclick="doFilteredSearch()" disabled>Søg med filtre →</button>
         </div>
 
       </div>
     </div>
   </div>
 
-  <!-- FILTERS -->
-  <div class="filters-bar">
-    <span class="filter-label">Filter:</span>
-    <select class="filter-select" id="filterRegion"     onchange="applyFiltersAndSearch()"><option value="">Alle regioner</option></select>
-    <select class="filter-select" id="filterCategory"   onchange="applyFiltersAndSearch()"><option value="">Alle kategorier</option></select>
-    <select class="filter-select" id="filterEmployment" onchange="applyFiltersAndSearch()"><option value="">Alle ansættelsesformer</option></select>
+  <!-- SAMPLE PROMPTS STRIP -->
+  <div class="samples-strip">
+    <div class="samples-inner">
+      <span class="samples-label">Prøv f.eks.:</span>
+      <div class="hint-chips" id="hintChips"></div>
+    </div>
   </div>
 </div>
 
@@ -568,7 +813,7 @@ let bookmarked = new Set();
 let bookmarkedJobs = {};
 let searching = false;
 let lastQuery = '';
-let searchMode = 'text';       // 'text' | 'doc'
+let searchMode = 'text'; // kept for doc search compatibility
 let docType = 'cv';
 let docText = '';
 let docFileName = '';
@@ -1178,8 +1423,17 @@ function filterExpired(jobs) {
 }
 
 function applyFiltersAndSearch() {
-  if (searchMode === 'text' && document.getElementById('searchInput').value.trim()) doSearch();
-  else if (searchMode === 'doc' && docText) doDocSearch();
+  const q = document.getElementById('searchInputFiltered').value.trim()
+         || document.getElementById('searchInput').value.trim();
+  if (q) { document.getElementById('searchInput').value = q; doSearch(); }
+  else if (docText) doDocSearch();
+}
+
+async function doFilteredSearch() {
+  const q = document.getElementById('searchInputFiltered').value.trim();
+  if (!q) return;
+  document.getElementById('searchInput').value = q;
+  doSearch();
 }
 
 // ════════════════════════════════════════════
@@ -1288,63 +1542,124 @@ function updateShortlistBar() {
   document.getElementById('shortlistBar').classList.toggle('hidden', n === 0);
 }
 
+function cleanDomain(url) {
+  if (!url) return '—';
+  try {
+    const host = new URL(url.replace(/^http:\/\//, 'https://')).hostname;
+    return host.replace(/^www\./, '');
+  } catch { return '—'; }
+}
+
 function downloadPDF() {
   const jobs = Object.values(bookmarkedJobs);
   if (!jobs.length) return;
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
 
-  doc.setFillColor(224,78,33);
+  // ── Header ──
+  doc.setFillColor(224, 78, 33);
   doc.rect(0, 0, W, 22, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica','bold');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.text('DKJOBS', 14, 14);
-  doc.setFont('helvetica','normal');
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  const dateStr = new Date().toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
-  doc.text(`Genvejsliste · ${dateStr}`, W - 14, 14, { align:'right' });
+  const dateStr = new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' });
+  doc.text(`Genvejsliste · ${dateStr}`, W - 14, 14, { align: 'right' });
 
+  // ── Query subtitle ──
   if (lastQuery) {
-    doc.setFillColor(245,244,240);
+    doc.setFillColor(245, 244, 240);
     doc.rect(0, 22, W, 10, 'F');
-    doc.setTextColor(102,102,102);
+    doc.setTextColor(102, 102, 102);
     doc.setFontSize(8.5);
-    doc.text(lastQuery.slice(0, 120), 14, 28.5);
+    doc.text(lastQuery.slice(0, 140), 14, 28.5);
   }
 
-  doc.autoTable({
-    startY: lastQuery ? 34 : 28,
-    head: [['#','Stilling','Virksomhed','By','Kategori','Link']],
-    body: jobs.map((j,i) => [i+1, j.t, j.c, j.o||'—', j.g||'—', j.u?'Åbn job →':'—']),
-    styles: { font:'helvetica', fontSize:9, cellPadding:{top:4,right:5,bottom:4,left:5}, textColor:[17,17,17], lineColor:[226,224,219], lineWidth:0.3 },
-    headStyles: { fillColor:[17,17,17], textColor:[255,255,255], fontStyle:'bold', fontSize:8.5 },
-    alternateRowStyles: { fillColor:[245,244,240] },
-    columnStyles: { 0:{cellWidth:10,halign:'center'}, 1:{cellWidth:80}, 2:{cellWidth:60}, 3:{cellWidth:35}, 4:{cellWidth:50}, 5:{cellWidth:30,textColor:[224,78,33],fontStyle:'bold'} },
-    didDrawCell: (data) => {
-      if (data.column.index === 5 && data.section === 'body') {
-        const url = jobs[data.row.index]?.u;
-        if (url) doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url });
-      }
-    },
-    margin: { left:14, right:14 }
+  const tableTop = lastQuery ? 34 : 28;
+  const hasReasons = jobs.some(j => j.reason);
+
+  // Build table rows — show clean domain, not raw URL
+  const rows = jobs.map((j, i) => {
+    const domain = cleanDomain(j.u);
+    const row = [i + 1, j.t, j.c, j.o || '—', j.g || '—'];
+    if (hasReasons) row.push(j.reason || '');
+    row.push(domain);
+    return row;
   });
 
+  const head = ['#', 'Stilling', 'Virksomhed', 'By', 'Kategori'];
+  if (hasReasons) head.push('Matchbegrundelse');
+  head.push('Webside');
+
+  // Column widths — adjust if reason column present
+  const colStyles = hasReasons ? {
+    0: { cellWidth: 9,  halign: 'center' },
+    1: { cellWidth: 65 },
+    2: { cellWidth: 52 },
+    3: { cellWidth: 28 },
+    4: { cellWidth: 38 },
+    5: { cellWidth: 50, fontStyle: 'italic', textColor: [102, 102, 102] },
+    6: { cellWidth: 32, textColor: [224, 78, 33], fontStyle: 'bold' },
+  } : {
+    0: { cellWidth: 10, halign: 'center' },
+    1: { cellWidth: 85 },
+    2: { cellWidth: 65 },
+    3: { cellWidth: 35 },
+    4: { cellWidth: 50 },
+    5: { cellWidth: 34, textColor: [224, 78, 33], fontStyle: 'bold' },
+  };
+
+  const linkColIdx = hasReasons ? 6 : 5;
+
+  doc.autoTable({
+    startY: tableTop,
+    head: [head],
+    body: rows,
+    styles: {
+      font: 'helvetica', fontSize: 8.5,
+      cellPadding: { top: 4, right: 5, bottom: 4, left: 5 },
+      textColor: [17, 17, 17],
+      lineColor: [226, 224, 219],
+      lineWidth: 0.3,
+      overflow: 'ellipsize',
+    },
+    headStyles: {
+      fillColor: [17, 17, 17], textColor: [255, 255, 255],
+      fontStyle: 'bold', fontSize: 8
+    },
+    alternateRowStyles: { fillColor: [245, 244, 240] },
+    columnStyles: colStyles,
+    didDrawCell: (data) => {
+      // Make domain column clickable with the full URL
+      if (data.column.index === linkColIdx && data.section === 'body') {
+        const url = jobs[data.row.index]?.u;
+        if (url) {
+          const cleanUrl = url.replace(/^http:\/\//, 'https://');
+          doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url: cleanUrl });
+        }
+      }
+    },
+    margin: { left: 14, right: 14 }
+  });
+
+  // ── Footer ──
   const pages = doc.internal.getNumberOfPages();
   for (let p = 1; p <= pages; p++) {
     doc.setPage(p);
-    doc.setFillColor(245,244,240);
-    doc.rect(0, H-10, W, 10, 'F');
-    doc.setTextColor(153,153,153);
+    doc.setFillColor(245, 244, 240);
+    doc.rect(0, H - 10, W, 10, 'F');
+    doc.setTextColor(153, 153, 153);
     doc.setFontSize(7.5);
-    doc.setFont('helvetica','normal');
-    doc.text('DKJOBS · Det danske jobmarked', 14, H-3.5);
-    doc.text(`Side ${p} af ${pages}`, W-14, H-3.5, { align:'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('DKJOBS · Det danske jobmarked', 14, H - 3.5);
+    doc.text(`Side ${p} af ${pages}`, W - 14, H - 3.5, { align: 'right' });
   }
 
-  doc.save(`DKJOBS_genvejsliste_${new Date().toISOString().slice(0,10)}.pdf`);
+  doc.save(`DKJOBS_genvejsliste_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
 // ════════════════════════════════════════════
@@ -1376,9 +1691,16 @@ function showIdle() {
 }
 function renderStatus() {
   const el = document.getElementById('statusPill');
-  const btn = document.getElementById('searchBtn');
-  if (!allJobs.length) { el.textContent='Ingen data'; btn.disabled=true; }
-  else { el.innerHTML=`<strong>${allJobs.length.toLocaleString('da-DK')}</strong> opslag`; btn.disabled=false; }
+  const noData = !allJobs.length;
+  if (noData) {
+    el.textContent = 'Ingen data';
+  } else {
+    el.innerHTML = `<strong>${allJobs.length.toLocaleString('da-DK')}</strong> opslag`;
+  }
+  ['searchBtn','filteredSearchBtn','docSearchBtn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.disabled = noData;
+  });
 }
 function renderFilters() {
   fillSelect('filterRegion',     [...new Set(allJobs.map(j=>j.r).filter(Boolean))].sort(),  'Alle regioner');
@@ -1477,6 +1799,16 @@ function removeChip(i)    { cfg.chips.splice(i,1); renderChipsEditor(); }
 function renderHintChips() {
   document.getElementById('hintChips').innerHTML = cfg.chips.filter(c=>c.trim())
     .map(c=>`<span class="hint-chip" onclick="fillSearch('${esc(c)}')">${esc(c)}</span>`).join('');
+}
+
+// ════════════════════════════════════════════
+// README
+// ════════════════════════════════════════════
+function showReadme() {
+  document.getElementById('readmeModal').style.display = 'flex';
+}
+function closeReadme() {
+  document.getElementById('readmeModal').style.display = 'none';
 }
 
 // ════════════════════════════════════════════
