@@ -530,7 +530,7 @@ const DOC_MAX_CHARS = 8000;
 // Set this to your Cloudflare Worker URL once deployed.
 // Leave as empty string '' to fall back to user's own API key.
 // Example: 'https://dkjobs-proxy.YOUR-NAME.workers.dev'
-const WORKER_URL = 'https://dkjobs-proxy.pgb-07a.workers.dev';
+const WORKER_URL = '';
 // ─────────────────────────────────────────────────────────────
 
 let cfg = {};
@@ -607,8 +607,8 @@ function jobKey(j) { return j.u || (j.t + '|' + j.c); }
 // ════════════════════════════════════════════
 function setMode(mode) {
   searchMode = mode;
-  document.getElementById('textMode').style.display = mode === 'text' ? '' : 'none';
-  document.getElementById('docMode').style.display  = mode === 'doc'  ? '' : 'none';
+  document.getElementById('textMode').style.display = mode === 'text' ? 'block' : 'none';
+  document.getElementById('docMode').style.display  = mode === 'doc'  ? 'block' : 'none';
   document.getElementById('modeTextBtn').className  = 'mode-btn' + (mode === 'text' ? ' active' : '');
   document.getElementById('modeDocBtn').className   = 'mode-btn' + (mode === 'doc'  ? ' active' : '');
 }
