@@ -350,14 +350,6 @@ code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 
       <!-- DOCUMENT UPLOAD MODE -->
       <div id="docMode">
 
-        <!-- Doc type chips -->
-        <div class="doc-type-chips">
-          <span class="doc-type-chip selected" id="chip_cv"        onclick="selectDocType('cv')">📋 CV</span>
-          <span class="doc-type-chip"          id="chip_education" onclick="selectDocType('education')">🎓 Uddannelse / studie</span>
-          <span class="doc-type-chip"          id="chip_course"    onclick="selectDocType('course')">📚 Kursus / certifikat</span>
-          <span class="doc-type-chip"          id="chip_wishlist"  onclick="selectDocType('wishlist')">⭐ Ønskeliste</span>
-        </div>
-
         <!-- Upload zone -->
         <div class="doc-upload-area" id="docUploadArea"
           onclick="document.getElementById('docFileInput').click()"
@@ -988,17 +980,7 @@ async function callAI(prompt, candidates) {
 
   const aiRanked = ids.map(id => map[String(id)]).filter(Boolean);
   console.log('[AI] Matched back:', aiRanked.length, 'of', ids.length, 'IDs');
-
-  // Only append unkeyworded candidates if AI gave us fewer than MAX_RES
-  if (aiRanked.length < MAX_RES) {
-    const seen = new Set(aiRanked.map(j => String(j.i)));
-    for (const j of candidates) {
-      if (aiRanked.length >= MAX_RES) break;
-      if (!seen.has(String(j.i))) { aiRanked.push(j); seen.add(String(j.i)); }
-    }
-  }
-
-  return aiRanked;
+  return aiRanked.slice(0, MAX_RES);
 }
 
 // ════════════════════════════════════════════
@@ -1033,8 +1015,8 @@ function renderResults(results, aiUsed, contextLabel) {
   const el = document.getElementById('searchResults');
   if (!results.length) {
     el.innerHTML = `<div class="state-box"><div class="state-icon">🔎</div>
-      <div class="state-title">Ingen resultater</div>
-      <div class="state-sub">Prøv andre søgeord, juster filtrene eller upload et andet dokument</div></div>`;
+      <div class="state-title">Ingen relevante opslag fundet</div>
+      <div class="state-sub">AI'en fandt ingen gode matches i de aktuelle jobdata. Prøv andre søgeord eller et mere specifikt udtryk.</div></div>`;
     return;
   }
   const badge = aiUsed
