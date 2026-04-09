@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DKJOBS — Søg i det danske jobmarked</title>
+<title>JOBRADAR — Find dit næste job med AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -375,7 +375,7 @@ code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 
       <div class="readme-header-left">
         <div class="readme-header-icon">📖</div>
         <div>
-          <div class="readme-header-title">Sådan virker DKJOBS</div>
+          <div class="readme-header-title">Sådan virker JOBRADAR</div>
           <div class="readme-header-sub">Guide til søgning, dokumentanalyse og genvejsliste</div>
         </div>
       </div>
@@ -384,11 +384,11 @@ code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 
     <div class="readme-body">
 
       <!-- INTRO -->
-      <p>DKJOBS er en AI-drevet jobsøgemaskine over det danske jobmarked. I modsætning til traditionelle søgemaskiner forstår DKJOBS <strong>hvad du mener</strong> — ikke blot de præcise ord du skriver. Du kan søge frit, uploade dit CV eller din uddannelsesbeskrivelse, og lade AI'en finde de mest relevante opslag for dig.</p>
+      <p>JOBRADAR er en AI-drevet jobsøgemaskine over det danske jobmarked. I modsætning til traditionelle søgemaskiner forstår JOBRADAR <strong>hvad du mener</strong> — ikke blot de præcise ord du skriver. Du kan søge frit, uploade dit CV eller din uddannelsesbeskrivelse, og lade AI'en finde de mest relevante opslag for dig.</p>
 
       <div class="highlight-box">
         <strong>Hvorfor er dette anderledes end en almindelig jobsøgemaskine?</strong><br>
-        En traditionel søgemaskine finder kun opslag der indeholder præcis dine søgeord. DKJOBS bruger Claude AI (fra Anthropic) til at forstå din hensigt, udvide din søgning med relaterede termer og rangere resultater efter ægte relevans — ikke bare tekstmatch.
+        En traditionel søgemaskine finder kun opslag der indeholder præcis dine søgeord. JOBRADAR bruger Claude AI (fra Anthropic) til at forstå din hensigt, udvide din søgning med relaterede termer og rangere resultater efter ægte relevans — ikke bare tekstmatch.
       </div>
 
       <!-- SØGEPIPELINEN -->
@@ -519,7 +519,7 @@ code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 
 
       <!-- TEKNISK -->
       <h2>🤖 Teknisk baggrund</h2>
-      <p>DKJOBS demonstrerer hvordan AI kan erstatte traditionel kategoriseret søgning og give bedre, mere personlige resultater:</p>
+      <p>JOBRADAR demonstrerer hvordan AI kan erstatte traditionel kategoriseret søgning og give bedre, mere personlige resultater:</p>
       <ul>
         <li><strong>Model:</strong> Claude Sonnet 4 (Anthropic) — samme model bruges til alle tre pipeline-trin</li>
         <li><strong>Data:</strong> Danske jobopslag fra de seneste 1–2 måneder, opdateret månedligt</li>
@@ -544,7 +544,7 @@ code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 
 
 <!-- HEADER -->
 <header>
-  <div class="logo"><div class="logo-dot"></div>DKJOBS</div>
+  <div class="logo"><div class="logo-dot"></div>JOBRADAR</div>
   <div class="header-center">
     <button class="nav-btn active" id="navSearch"   onclick="showTab('search')">Søg</button>
     <button class="nav-btn"        id="navData"     onclick="showTab('data')">Data</button>
@@ -1564,7 +1564,7 @@ function downloadPDF() {
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
-  doc.text('DKJOBS', 14, 14);
+  doc.text('JOBRADAR', 14, 14);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   const dateStr = new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -1655,11 +1655,11 @@ function downloadPDF() {
     doc.setTextColor(153, 153, 153);
     doc.setFontSize(7.5);
     doc.setFont('helvetica', 'normal');
-    doc.text('DKJOBS · Det danske jobmarked', 14, H - 3.5);
+    doc.text('JOBRADAR · Det danske jobmarked', 14, H - 3.5);
     doc.text(`Side ${p} af ${pages}`, W - 14, H - 3.5, { align: 'right' });
   }
 
-  doc.save(`DKJOBS_genvejsliste_${new Date().toISOString().slice(0, 10)}.pdf`);
+  doc.save(`JOBRADAR_genvejsliste_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
 // ════════════════════════════════════════════
