@@ -495,9 +495,9 @@ const DEFAULT_CFG = {
   chips: ['Dataforsker Python', 'SOSU plejehjem Sjælland', 'Junior salgskonsulent', 'Folkeskolelærer Jylland'],
   aiPrompt: `Du er en dansk jobsøgningsassistent. Brugerens søgning: "{query}"
 
-Ranger disse {count} jobopslag efter relevans og returner de {max} mest relevante job-IDs som et JSON array — kun tal, ingen markdown.
+Ranger disse {count} jobopslag efter relevans. Returner de {max} mest relevante som et JSON array med deres "job_id" værdier — kun tal, ingen markdown, ingen forklaring.
 
-Eksempel: [12345, 67890]
+Eksempel: [538891, 538834, 538802]
 
 Jobopslag:
 {jobs}`,
@@ -509,11 +509,9 @@ Jobopslag:
 
 {hint}
 
-Baseret på dette dokument — identificer relevante kompetencer, uddannelsesområder, erfaringer og præferencer. Match derefter mod disse {count} jobopslag fra det danske jobmarked og returner de {max} mest relevante job-IDs som et JSON array med kun tal og ingen anden tekst.
+Identificer relevante kompetencer, uddannelsesområder, erfaringer og præferencer fra dokumentet. Match dem mod disse {count} jobopslag og returner de {max} mest relevante som et JSON array med deres "job_id" værdier — kun tal, ingen markdown.
 
-For hvert job du vælger, tænk over: passer kompetencerne? passer branchen? passer ansættelsesformen?
-
-Eksempel output: [12345, 67890]
+Eksempel: [538891, 538834, 538802]
 
 Jobopslag:
 {jobs}`,
@@ -596,7 +594,7 @@ function compactJob(row) {
     e: String(row.employment_form || row.employment || ''),
     o: String(row.town || row.city || ''),
     r: String(row.region || ''),
-    x: String(row.gpt_context || row.description || '').slice(0, 200),
+    x: String(row.gpt_context || row.description || '').slice(0, 400),
     d: row.application_date ? String(row.application_date) : '',
   };
 }
@@ -808,7 +806,7 @@ async function doSearch() {
   if (aiEnabled && candidates.length > 1) {
     setPhase(`AI analyserer ${candidates.length} kandidater…`);
     try {
-      const payload = candidates.map(j => ({ id: j.i||jobKey(j), title:j.t, company:j.c, category:j.g, type:j.j, employment:j.e, town:j.o, region:j.r, context:j.x }));
+      const payload = candidates.map((j, idx) => ({ job_id: j.i, title:j.t, company:j.c, category:j.g, type:j.j, employment:j.e, town:j.o, region:j.r, context:j.x }));
       const prompt = (cfg.aiPrompt || DEFAULT_CFG.aiPrompt)
         .replace('{query}', q).replace('{count}', candidates.length)
         .replace('{max}', MAX_RES).replace('{jobs}', JSON.stringify(payload));
@@ -850,7 +848,7 @@ async function doDocSearch() {
   if (aiEnabled) {
     setPhase('AI analyserer dit dokument…', 'Matcher kompetencer og præferencer mod jobopslag');
     try {
-      const payload = candidates.map(j => ({ id:j.i||jobKey(j), title:j.t, company:j.c, category:j.g, type:j.j, employment:j.e, town:j.o, region:j.r, context:j.x }));
+      const payload = candidates.map((j, idx) => ({ job_id: j.i, title:j.t, company:j.c, category:j.g, type:j.j, employment:j.e, town:j.o, region:j.r, context:j.x }));
       const hintText = hint ? `Brugerens ekstra kommentar: "${hint}"` : '';
       const prompt = (cfg.docPrompt || DEFAULT_CFG.docPrompt)
         .replace('{doctype}',    doctypeLabels[docType] || docType)
@@ -879,8 +877,6 @@ async function doDocSearch() {
 
 // ════════════════════════════════════════════
 // SHARED AI CALL
-// Routes through Cloudflare Worker if WORKER_URL is set,
-// otherwise falls back to user's own API key.
 // ════════════════════════════════════════════
 async function callAI(prompt, candidates) {
   const usingWorker = !!WORKER_URL;
@@ -891,18 +887,16 @@ async function callAI(prompt, candidates) {
     return candidates.slice(0, MAX_RES);
   }
 
-  const payload = { model: MODEL, max_tokens: 400, messages: [{ role: 'user', content: prompt }] };
+  const payload = { model: MODEL, max_tokens: 600, messages: [{ role: 'user', content: prompt }] };
 
   let res;
   if (usingWorker) {
-    // Call our proxy — no key needed in browser
     res = await fetch(WORKER_URL, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(payload),
     });
   } else {
-    // Direct call with user's own key
     res = await fetch('https://api.anthropic.com/v1/messages', {
       method:  'POST',
       headers: {
@@ -916,16 +910,36 @@ async function callAI(prompt, candidates) {
   }
 
   const data = await res.json();
-  const txt  = data.content?.find(b => b.type === 'text')?.text || '[]';
-  let ids;
-  try { ids = JSON.parse(txt.replace(/```[\w]*|```/g, '').trim()); }
-  catch { return candidates.slice(0, MAX_RES); }
 
+  if (data.error) {
+    console.error('Anthropic API error:', data.error);
+    return candidates.slice(0, MAX_RES);
+  }
+
+  const txt = data.content?.find(b => b.type === 'text')?.text || '[]';
+  let ids;
+  try {
+    ids = JSON.parse(txt.replace(/```[\w]*|```/g, '').trim());
+  } catch {
+    console.warn('Could not parse AI response:', txt);
+    return candidates.slice(0, MAX_RES);
+  }
+
+  // Build lookup by job_id (stored as j.i) — guaranteed unique 6-digit numbers
   const map = {};
-  candidates.forEach(j => { map[j.i] = j; map[jobKey(j)] = j; });
-  const aiRanked = ids.map(id => map[id]).filter(Boolean);
-  const seen = new Set(aiRanked.map(jobKey));
-  for (const j of candidates) { if (!seen.has(jobKey(j))) { aiRanked.push(j); seen.add(jobKey(j)); } }
+  candidates.forEach(j => {
+    const id = String(j.i);
+    if (id && id !== '0') map[id] = j;
+  });
+
+  const aiRanked = ids.map(id => map[String(id)]).filter(Boolean);
+
+  // Fill up remaining slots with candidates AI didn't mention
+  const seen = new Set(aiRanked.map(j => String(j.i)));
+  for (const j of candidates) {
+    if (aiRanked.length >= MAX_RES * 2) break;
+    if (!seen.has(String(j.i))) { aiRanked.push(j); seen.add(String(j.i)); }
+  }
   return aiRanked;
 }
 
