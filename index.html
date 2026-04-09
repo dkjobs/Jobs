@@ -9,8 +9,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
 :root {
   --orange:  #E04E21;
@@ -552,11 +550,6 @@ let lastResults = [];
 // BOOT
 // ════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
-  // Set PDF.js worker
-  if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
   loadCfg();
   applyCfgToUI();
   renderHintChips();
@@ -631,6 +624,30 @@ function selectDocType(type) {
 }
 
 // ════════════════════════════════════════════
+// LAZY LIBRARY LOADER
+// ════════════════════════════════════════════
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${url}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = url; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function ensurePdfJs() {
+  if (window.pdfjsLib) return;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+async function ensureMammoth() {
+  if (window.mammoth) return;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+}
+
+// ════════════════════════════════════════════
 // DOCUMENT EXTRACTION
 // ════════════════════════════════════════════
 function handleDocDrop(e) {
@@ -647,7 +664,8 @@ function handleDocFile(e) {
 
 async function extractDocText(file) {
   const zone = document.getElementById('docUploadArea');
-  zone.querySelector('.doc-upload-title').textContent = 'Indlæser…';
+  const titleEl = zone.querySelector('.doc-upload-title');
+  titleEl.textContent = 'Indlæser bibliotek…';
   docFileName = file.name;
   const ext = file.name.split('.').pop().toLowerCase();
 
@@ -658,37 +676,63 @@ async function extractDocText(file) {
       text = await file.text();
 
     } else if (ext === 'pdf') {
-      const buf = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-      const pages = [];
-      for (let p = 1; p <= Math.min(pdf.numPages, 10); p++) {
-        const page = await pdf.getPage(p);
-        const content = await page.getTextContent();
-        pages.push(content.items.map(i => i.str).join(' '));
+      titleEl.textContent = 'Læser PDF…';
+      try {
+        await ensurePdfJs();
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        const pages = [];
+        for (let p = 1; p <= Math.min(pdf.numPages, 10); p++) {
+          const page    = await pdf.getPage(p);
+          const content = await page.getTextContent();
+          pages.push(content.items.map(i => i.str).join(' '));
+        }
+        text = pages.join('\n');
+      } catch(e) {
+        console.error('PDF.js error:', e);
+        // Fallback: ask user to paste text
+        text = await promptManualText('PDF kunne ikke læses automatisk. Kopier og indsæt teksten fra dit dokument:');
       }
-      text = pages.join('\n');
 
     } else if (ext === 'docx' || ext === 'doc') {
-      const buf = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer: buf });
-      text = result.value;
+      titleEl.textContent = 'Læser Word-dokument…';
+      try {
+        await ensureMammoth();
+        const buf    = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer: buf });
+        text = result.value;
+      } catch(e) {
+        console.error('Mammoth error:', e);
+        text = await promptManualText('Word-dokument kunne ikke læses. Kopier og indsæt teksten:');
+      }
 
     } else {
-      alert('Filtype ikke understøttet. Brug PDF, DOCX eller TXT.');
+      alert('Filtype ikke understøttet.\nBrug PDF, Word (.docx) eller TXT.');
+      titleEl.textContent = 'Upload dit dokument her';
       return;
     }
 
     text = text.replace(/\s+/g, ' ').trim();
-    if (!text) { alert('Ingen tekst fundet i dokumentet.'); return; }
+    if (!text) {
+      text = await promptManualText('Ingen tekst fundet i filen. Indsæt teksten manuelt:');
+    }
+    if (!text) { titleEl.textContent = 'Upload dit dokument her'; return; }
 
     docText = text.slice(0, DOC_MAX_CHARS);
     showDocPreview(file.name, docText);
 
   } catch(err) {
     console.error('Doc extraction error:', err);
-    alert('Kunne ikke læse filen: ' + err.message);
-    zone.querySelector('.doc-upload-title').textContent = 'Upload dit dokument her';
+    titleEl.textContent = 'Upload dit dokument her';
+    alert('Kunne ikke behandle filen: ' + err.message);
   }
+}
+
+function promptManualText(msg) {
+  return new Promise(resolve => {
+    const val = prompt(msg);
+    resolve(val ? val.trim() : '');
+  });
 }
 
 function showDocPreview(name, text) {
