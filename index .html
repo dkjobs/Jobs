@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DKJOBS — Søg i det danske jobmarked</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root {
+  --orange:  #E04E21;
+  --orange2: #C4411A;
+  --black:   #111111;
+  --gray1:   #333333;
+  --gray2:   #666666;
+  --gray3:   #999999;
+  --gray4:   #CCCCCC;
+  --bg:      #FFFFFF;
+  --bg2:     #F5F4F0;
+  --bg3:     #EDECEA;
+  --border:  #E2E0DB;
+  --font:    'Plus Jakarta Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--black); min-height: 100vh; }
+
+/* ── HEADER ── */
+header {
+  background: var(--bg); border-bottom: 1.5px solid var(--border);
+  height: 64px; display: flex; align-items: center; padding: 0 40px;
+  justify-content: space-between; position: sticky; top: 0; z-index: 200;
+}
+.logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--black); user-select: none; display: flex; align-items: center; gap: 7px; }
+.logo-dot { width: 9px; height: 9px; background: var(--orange); border-radius: 50%; }
+.header-center { display: flex; gap: 0; background: var(--bg2); border-radius: 8px; padding: 4px; }
+.nav-btn { padding: 7px 20px; border-radius: 6px; border: none; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; color: var(--gray2); transition: all 0.15s; }
+.nav-btn:hover { color: var(--black); }
+.nav-btn.active { background: var(--bg); color: var(--black); box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.status-pill { font-size: 12px; color: var(--gray3); font-weight: 500; }
+.status-pill strong { color: var(--orange); }
+.icon-btn { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: border-color 0.15s; }
+.icon-btn:hover { border-color: var(--orange); }
+
+/* ── HERO ── */
+.hero { background: var(--bg2); border-bottom: 1.5px solid var(--border); padding: 56px 40px 48px; }
+.hero-inner { max-width: 820px; margin: 0 auto; }
+.hero-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); margin-bottom: 16px; }
+.hero-title { font-size: clamp(28px, 4vw, 48px); font-weight: 800; line-height: 1.08; letter-spacing: -1px; color: var(--black); margin-bottom: 10px; }
+.hero-sub { font-size: 15px; color: var(--gray2); font-weight: 400; margin-bottom: 32px; line-height: 1.6; max-width: 560px; }
+
+/* ── SEARCH MODE TOGGLE ── */
+.mode-toggle {
+  display: flex; gap: 0; background: var(--bg3); border-radius: 10px;
+  padding: 4px; margin-bottom: 20px; width: fit-content;
+}
+.mode-btn {
+  padding: 9px 20px; border-radius: 7px; border: none; font-family: var(--font);
+  font-size: 13px; font-weight: 600; cursor: pointer; background: transparent;
+  color: var(--gray2); transition: all 0.15s; display: flex; align-items: center; gap: 7px;
+}
+.mode-btn:hover { color: var(--black); }
+.mode-btn.active { background: var(--bg); color: var(--black); box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
+.mode-btn .mode-icon { font-size: 15px; }
+
+/* ── TEXT SEARCH MODE ── */
+.search-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.search-input {
+  flex: 1; padding: 15px 20px; font-family: var(--font); font-size: 15px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg);
+  color: var(--black); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-input::placeholder { color: var(--gray4); }
+.search-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(224,78,33,0.1); }
+.search-btn {
+  padding: 15px 34px; background: var(--orange); color: #fff; border: none;
+  border-radius: 10px; font-family: var(--font); font-size: 15px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s, transform 0.1s;
+}
+.search-btn:hover { background: var(--orange2); }
+.search-btn:active { transform: scale(0.98); }
+.search-btn:disabled { background: var(--gray4); cursor: default; transform: none; }
+.hint-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.hint-chip { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12.5px; color: var(--gray2); cursor: pointer; transition: all 0.15s; font-weight: 500; }
+.hint-chip:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ── DOCUMENT UPLOAD MODE ── */
+#docMode { display: none; }
+
+.doc-upload-area {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 32px 24px;
+  text-align: center; cursor: pointer; background: var(--bg); transition: all 0.2s;
+  margin-bottom: 16px; position: relative;
+}
+.doc-upload-area:hover, .doc-upload-area.drag { border-color: var(--orange); background: #FFF8F5; }
+.doc-upload-area input { display: none; }
+.doc-upload-icon { font-size: 36px; margin-bottom: 10px; }
+.doc-upload-title { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
+.doc-upload-hint { font-size: 13px; color: var(--gray3); }
+
+/* Uploaded doc preview */
+.doc-preview {
+  display: none;
+  background: var(--bg); border: 1.5px solid var(--orange);
+  border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
+  gap: 14px; align-items: flex-start;
+}
+.doc-preview.visible { display: flex; }
+.doc-preview-icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+.doc-preview-body { flex: 1; min-width: 0; }
+.doc-preview-name { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-preview-excerpt { font-size: 12px; color: var(--gray2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.doc-preview-chars { font-size: 11px; color: var(--gray3); margin-top: 4px; font-weight: 500; }
+.doc-remove-btn { flex-shrink: 0; width: 28px; height: 28px; border: 1.5px solid var(--border); border-radius: 6px; background: none; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; color: var(--gray3); transition: all 0.15s; }
+.doc-remove-btn:hover { border-color: #E63B2E; color: #E63B2E; }
+
+/* Optional free-text hint for doc mode */
+.doc-hint-row { display: flex; gap: 10px; margin-bottom: 0; }
+.doc-hint-input {
+  flex: 1; padding: 12px 16px; font-family: var(--font); font-size: 14px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg);
+  color: var(--black); outline: none; transition: border-color 0.2s;
+}
+.doc-hint-input::placeholder { color: var(--gray4); }
+.doc-hint-input:focus { border-color: var(--orange); }
+.doc-search-btn {
+  padding: 12px 28px; background: var(--orange); color: #fff; border: none;
+  border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s;
+}
+.doc-search-btn:hover { background: var(--orange2); }
+.doc-search-btn:disabled { background: var(--gray4); cursor: default; }
+
+.doc-type-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.doc-type-chip {
+  padding: 5px 13px; border: 1.5px solid var(--border); border-radius: 20px;
+  font-size: 12px; color: var(--gray2); cursor: pointer; transition: all 0.15s; font-weight: 500;
+}
+.doc-type-chip:hover, .doc-type-chip.selected { border-color: var(--orange); color: var(--orange); background: #FFF8F5; }
+
+/* ── FILTERS ── */
+.filters-bar {
+  background: var(--bg); border-bottom: 1.5px solid var(--border);
+  padding: 10px 40px; display: flex; align-items: center; gap: 10px; overflow-x: auto; scrollbar-width: none;
+}
+.filters-bar::-webkit-scrollbar { display: none; }
+.filter-label { font-size: 11px; font-weight: 700; color: var(--gray3); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+.filter-select { padding: 7px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--font); font-size: 13px; color: var(--gray1); background: var(--bg); outline: none; cursor: pointer; transition: border-color 0.15s; }
+.filter-select:focus { border-color: var(--orange); }
+
+/* ── MAIN ── */
+.main { max-width: 880px; margin: 0 auto; padding: 44px 24px 120px; }
+
+/* ── RESULTS ── */
+.results-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1.5px solid var(--border); }
+.results-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+.results-title span { color: var(--orange); }
+.results-context { font-size: 12px; color: var(--gray3); margin-top: 3px; font-style: italic; }
+
+.ai-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--gray3); text-transform: uppercase; letter-spacing: 0.08em; }
+.ai-dot { width: 7px; height: 7px; background: var(--orange); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+/* ── JOB CARD ── */
+.job-card {
+  background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 20px 24px; margin-bottom: 10px; display: flex; align-items: flex-start;
+  gap: 14px; transition: border-color 0.15s, box-shadow 0.18s, transform 0.15s;
+  animation: fadeUp 0.3s ease both;
+}
+.job-card:hover { border-color: var(--black); box-shadow: 0 6px 28px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.job-card.bookmarked { border-color: var(--orange); background: #FFF8F5; }
+.job-card.expired { opacity: 0.55; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+.bookmark-btn {
+  width: 32px; height: 32px; flex-shrink: 0; border: 1.5px solid var(--border);
+  border-radius: 8px; background: var(--bg); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; font-size: 15px; transition: all 0.15s; margin-top: 2px;
+}
+.bookmark-btn:hover { border-color: var(--orange); }
+.job-card.bookmarked .bookmark-btn { background: var(--orange); border-color: var(--orange); }
+
+.rank-badge { font-size: 11px; font-weight: 700; color: var(--gray4); min-width: 22px; padding-top: 5px; flex-shrink: 0; }
+.job-card:nth-child(-n+3) .rank-badge { color: var(--orange); }
+.job-body { flex: 1; min-width: 0; }
+.job-title { font-size: 17px; font-weight: 700; color: var(--black); line-height: 1.3; margin-bottom: 3px; letter-spacing: -0.2px; }
+.job-company { font-size: 14px; color: var(--gray2); font-weight: 500; margin-bottom: 10px; }
+.job-match-reason { font-size: 12px; color: var(--orange2); font-weight: 500; margin-bottom: 8px; font-style: italic; }
+.job-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag { padding: 3px 10px; border-radius: 4px; font-size: 11.5px; font-weight: 600; }
+.tag-loc  { background: #EBF3FF; color: #2563EB; }
+.tag-cat  { background: var(--bg2); color: var(--gray2); border: 1px solid var(--border); }
+.tag-emp  { background: #FFF3EE; color: var(--orange); border: 1px solid #F5C5B0; }
+.tag-warn { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+
+.card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; align-self: center; }
+.apply-btn { padding: 10px 18px; background: var(--black); color: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; transition: background 0.15s; display: inline-block; }
+.apply-btn:hover { background: var(--orange); }
+
+/* ── STATES ── */
+.state-box { text-align: center; padding: 80px 0; }
+.state-icon { font-size: 52px; margin-bottom: 18px; }
+.state-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 8px; }
+.state-sub { font-size: 15px; color: var(--gray2); }
+.state-cta { display: inline-block; margin-top: 22px; padding: 12px 28px; background: var(--black); color: #fff; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; font-family: var(--font); transition: background 0.15s; }
+.state-cta:hover { background: var(--orange); }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--orange); border-radius: 50%; margin: 0 auto 16px; animation: spin 0.7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.phase-text { font-size: 14px; color: var(--gray3); font-weight: 500; }
+.phase-sub  { font-size: 12px; color: var(--gray4); margin-top: 6px; }
+
+/* ── SHORTLIST BAR ── */
+.shortlist-bar {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: var(--black); color: #fff; border-radius: 14px;
+  padding: 14px 20px; display: flex; align-items: center; gap: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3); font-size: 14px; font-weight: 600;
+  transition: opacity 0.2s, transform 0.2s; z-index: 300; white-space: nowrap;
+}
+.shortlist-bar.hidden { opacity: 0; transform: translateX(-50%) translateY(16px); pointer-events: none; }
+.shortlist-count { background: var(--orange); color: #fff; border-radius: 20px; padding: 2px 10px; font-size: 13px; font-weight: 700; }
+.shortlist-actions { display: flex; gap: 8px; }
+.bar-btn { padding: 8px 16px; border-radius: 8px; font-family: var(--font); font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: background 0.15s; }
+.bar-btn-pdf   { background: var(--orange); color: #fff; }
+.bar-btn-pdf:hover { background: var(--orange2); }
+.bar-btn-clear { background: rgba(255,255,255,0.12); color: #fff; }
+.bar-btn-clear:hover { background: rgba(255,255,255,0.2); }
+
+/* ── SETTINGS / DATA TABS ── */
+.tab-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+.tab-sub { font-size: 15px; color: var(--gray2); margin-bottom: 36px; }
+.settings-group { margin-bottom: 28px; }
+.settings-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray3); margin-bottom: 8px; }
+.settings-field { width: 100%; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--font); font-size: 14px; color: var(--black); background: var(--bg); outline: none; transition: border-color 0.15s; resize: vertical; }
+.settings-field:focus { border-color: var(--orange); }
+.settings-save { padding: 12px 28px; background: var(--black); color: #fff; border: none; border-radius: 8px; font-family: var(--font); font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+.settings-save:hover { background: var(--orange); }
+.settings-hint { font-size: 12px; color: var(--gray3); margin-top: 5px; }
+.chips-editor { display: flex; flex-direction: column; gap: 8px; }
+.chip-row { display: flex; gap: 8px; }
+.chip-input { flex: 1; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--font); font-size: 13px; color: var(--black); outline: none; transition: border-color 0.15s; }
+.chip-input:focus { border-color: var(--orange); }
+.chip-remove { width: 30px; height: 30px; border: 1.5px solid var(--border); border-radius: 6px; background: none; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; color: var(--gray3); transition: all 0.15s; }
+.chip-remove:hover { border-color: #E63B2E; color: #E63B2E; }
+.add-chip-btn { align-self: flex-start; padding: 8px 16px; border: 1.5px dashed var(--border); border-radius: 8px; background: none; font-family: var(--font); font-size: 13px; color: var(--gray3); cursor: pointer; transition: all 0.15s; }
+.add-chip-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+.data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 32px; }
+.data-card { background: var(--bg2); border: 1.5px solid var(--border); border-radius: 12px; padding: 20px 22px; }
+.data-card.active { border-color: var(--orange); background: #FFF8F5; }
+.data-card-title { font-size: 11px; font-weight: 700; color: var(--gray2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+.data-card-value { font-size: 26px; font-weight: 800; color: var(--black); letter-spacing: -0.5px; }
+.data-card-sub { font-size: 12px; color: var(--gray3); margin-top: 3px; }
+
+.section-head { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray3); margin-bottom: 12px; }
+.file-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
+.file-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.file-item-info { flex: 1; }
+.file-item-name { font-size: 14px; font-weight: 700; color: var(--black); }
+.file-item-meta { font-size: 12px; color: var(--gray3); margin-top: 2px; }
+
+code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 11.5px; color: var(--orange2); font-family: monospace; }
+.info-box { padding: 18px 22px; background: var(--bg2); border-radius: 10px; border: 1.5px solid var(--border); margin-top: 16px; }
+.info-box h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.info-box ol { padding-left: 18px; font-size: 13px; color: var(--gray2); line-height: 2.1; }
+
+/* API modal */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(3px); z-index: 500; display: flex; align-items: center; justify-content: center; }
+.modal { background: var(--bg); border-radius: 16px; padding: 36px; width: 100%; max-width: 460px; box-shadow: 0 24px 80px rgba(0,0,0,0.2); }
+.modal-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 8px; }
+.modal-sub { font-size: 14px; color: var(--gray2); margin-bottom: 22px; line-height: 1.6; }
+.modal-sub a { color: var(--orange); }
+.modal-input { width: 100%; padding: 12px 15px; border: 1.5px solid var(--border); border-radius: 8px; font-family: monospace; font-size: 13px; outline: none; margin-bottom: 14px; transition: border-color 0.15s; }
+.modal-input:focus { border-color: var(--orange); }
+.modal-save { width: 100%; padding: 13px; background: var(--black); color: #fff; border: none; border-radius: 8px; font-family: var(--font); font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+.modal-save:hover { background: var(--orange); }
+.modal-skip { display: block; text-align: center; margin-top: 10px; font-size: 13px; color: var(--gray3); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: var(--font); width: 100%; }
+
+@media (max-width: 640px) {
+  header { padding: 0 16px; }
+  .hero { padding: 40px 16px 44px; }
+  .filters-bar { padding: 10px 16px; }
+  .main { padding: 28px 16px 120px; }
+  .job-card { flex-wrap: wrap; }
+  .card-right { flex-direction: row; align-self: auto; }
+  .header-center { display: none; }
+  .data-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- API MODAL -->
+<div id="apiModal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Anthropic API-nøgle</div>
+    <div class="modal-sub">Nøglen aktiverer AI-rangering og dokumentanalyse. Den gemmes kun lokalt i din browser og sendes kun til Anthropic.<br><br>Hent din nøgle på <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+    <input id="apiKeyInput" class="modal-input" type="password" placeholder="sk-ant-…">
+    <button class="modal-save" onclick="saveApiKey()">Gem og fortsæt</button>
+    <button class="modal-skip" onclick="closeModal()">Spring over — kun nøgleordssøgning</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo"><div class="logo-dot"></div>DKJOBS</div>
+  <div class="header-center">
+    <button class="nav-btn active" id="navSearch"   onclick="showTab('search')">Søg</button>
+    <button class="nav-btn"        id="navData"     onclick="showTab('data')">Data</button>
+    <button class="nav-btn"        id="navSettings" onclick="showTab('settings')">Indstillinger</button>
+  </div>
+  <div class="header-right">
+    <div class="status-pill" id="statusPill">Indlæser…</div>
+    <button class="icon-btn" onclick="showApiModal()" title="API-nøgle">🔑</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div id="heroSection">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-label"  id="heroLabel">Det danske jobmarked · AI-drevet søgning</div>
+      <h1 class="hero-title"  id="heroTitle">Find dit næste job i Danmark</h1>
+      <p  class="hero-sub"    id="heroSub">Beskriv hvad du leder efter — eller upload et dokument og lad AI'en matche det mod jobmarkedet.</p>
+
+      <!-- MODE TOGGLE -->
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeTextBtn" onclick="setMode('text')">
+          <span class="mode-icon">🔍</span> Fritekst-søgning
+        </button>
+        <button class="mode-btn" id="modeDocBtn" onclick="setMode('doc')">
+          <span class="mode-icon">📄</span> Upload dokument
+        </button>
+      </div>
+
+      <!-- TEXT SEARCH MODE -->
+      <div id="textMode">
+        <div class="search-row">
+          <input class="search-input" id="searchInput" placeholder="F.eks. 'sygeplejerske i Aarhus'" onkeydown="if(event.key==='Enter')doSearch()">
+          <button class="search-btn" id="searchBtn" onclick="doSearch()" disabled>Søg →</button>
+        </div>
+        <div class="hint-chips" id="hintChips"></div>
+      </div>
+
+      <!-- DOCUMENT UPLOAD MODE -->
+      <div id="docMode">
+
+        <!-- Doc type chips -->
+        <div class="doc-type-chips">
+          <span class="doc-type-chip selected" id="chip_cv"        onclick="selectDocType('cv')">📋 CV</span>
+          <span class="doc-type-chip"          id="chip_education" onclick="selectDocType('education')">🎓 Uddannelse / studie</span>
+          <span class="doc-type-chip"          id="chip_course"    onclick="selectDocType('course')">📚 Kursus / certifikat</span>
+          <span class="doc-type-chip"          id="chip_wishlist"  onclick="selectDocType('wishlist')">⭐ Ønskeliste</span>
+        </div>
+
+        <!-- Upload zone -->
+        <div class="doc-upload-area" id="docUploadArea"
+          onclick="document.getElementById('docFileInput').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDocDrop(event)">
+          <input type="file" id="docFileInput" accept=".pdf,.txt,.docx,.doc" onchange="handleDocFile(event)">
+          <div class="doc-upload-icon">📄</div>
+          <div class="doc-upload-title">Upload dit dokument her</div>
+          <div class="doc-upload-hint">PDF, Word (.docx) eller TXT · Klik eller træk-og-slip</div>
+        </div>
+
+        <!-- Doc preview (shown after upload) -->
+        <div class="doc-preview" id="docPreview">
+          <div class="doc-preview-icon" id="docPreviewIcon">📄</div>
+          <div class="doc-preview-body">
+            <div class="doc-preview-name"    id="docPreviewName"></div>
+            <div class="doc-preview-excerpt" id="docPreviewExcerpt"></div>
+            <div class="doc-preview-chars"   id="docPreviewChars"></div>
+          </div>
+          <button class="doc-remove-btn" onclick="removeDoc()" title="Fjern dokument">✕</button>
+        </div>
+
+        <!-- Optional extra hint -->
+        <div class="doc-hint-row">
+          <input class="doc-hint-input" id="docHintInput" placeholder="Tilføj evt. en ekstra kommentar — f.eks. 'Foretrækker Aarhus' eller 'Fuld tid'">
+          <button class="doc-search-btn" id="docSearchBtn" onclick="doDocSearch()" disabled>Analysér →</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-bar">
+    <span class="filter-label">Filter:</span>
+    <select class="filter-select" id="filterRegion"     onchange="applyFiltersAndSearch()"><option value="">Alle regioner</option></select>
+    <select class="filter-select" id="filterCategory"   onchange="applyFiltersAndSearch()"><option value="">Alle kategorier</option></select>
+    <select class="filter-select" id="filterEmployment" onchange="applyFiltersAndSearch()"><option value="">Alle ansættelsesformer</option></select>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SEARCH -->
+  <div id="tabSearch"><div id="searchResults"></div></div>
+
+  <!-- DATA -->
+  <div id="tabData" style="display:none">
+    <h2 class="tab-title">Datafiler</h2>
+    <p class="tab-sub">Oversigt over de datafiler der er indlæst fra serveren.</p>
+    <div class="data-grid" id="dataStats"></div>
+    <div class="section-head">Indlæste filer</div>
+    <div id="serverFileList"></div>
+    <div class="info-box">
+      <h4>Opdatering af data</h4>
+      <ol>
+        <li>Kør <code>convert_to_json.py</code> lokalt for at konvertere XLSX/CSV til JSON</li>
+        <li>Upload JSON-filen til <code>data/</code> i dit GitHub-repository</li>
+        <li>Opdatér <code>data/manifest.json</code> med filnavnet</li>
+        <li>GitHub Pages deployer automatisk inden for ~1 minut</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="tabSettings" style="display:none">
+    <h2 class="tab-title">Indstillinger</h2>
+    <p class="tab-sub">Tilpas tekster, eksempel-søgninger og AI-adfærd.</p>
+    <div class="settings-group">
+      <div class="settings-label">Hero-overskrift</div>
+      <input type="text" class="settings-field" id="cfgHeroTitle">
+    </div>
+    <div class="settings-group">
+      <div class="settings-label">Hero-undertekst</div>
+      <input type="text" class="settings-field" id="cfgHeroSub">
+    </div>
+    <div class="settings-group">
+      <div class="settings-label">Hero-label</div>
+      <input type="text" class="settings-field" id="cfgHeroLabel">
+    </div>
+    <div class="settings-group">
+      <div class="settings-label">Søgefelt placeholder</div>
+      <input type="text" class="settings-field" id="cfgPlaceholder">
+    </div>
+    <div class="settings-group">
+      <div class="settings-label">Eksempel-søgninger</div>
+      <div class="chips-editor" id="chipsEditor"></div>
+      <button class="add-chip-btn" onclick="addChip()" style="margin-top:8px">+ Tilføj eksempel</button>
+    </div>
+    <div class="settings-group">
+      <div class="settings-label">AI-prompt — fritekst søgning</div>
+      <textarea class="settings-field" id="cfgAiPrompt" rows="6"></textarea>
+      <div class="settings-hint">Tokens: <code>{query}</code> <code>{count}</code> <code>{max}</code> <code>{jobs}</code></div>
+    </div>
+    <div class="settings-group">
+      <div class="settings-label">AI-prompt — dokumentanalyse</div>
+      <textarea class="settings-field" id="cfgDocPrompt" rows="8"></textarea>
+      <div class="settings-hint">Tokens: <code>{doctype}</code> <code>{doccontent}</code> <code>{hint}</code> <code>{count}</code> <code>{max}</code> <code>{jobs}</code></div>
+    </div>
+    <div class="settings-group">
+      <div class="settings-label">Udløbne opslag</div>
+      <select class="settings-field" id="cfgExpiredMode">
+        <option value="badge">Vis med advarselsmærke</option>
+        <option value="hide">Skjul fuldstændigt</option>
+        <option value="show">Vis normalt</option>
+      </select>
+    </div>
+    <button class="settings-save" onclick="saveSettings()">Gem indstillinger</button>
+    <div id="settingsSavedMsg" style="display:none;margin-top:10px;font-size:13px;color:#16a34a;font-weight:600">✓ Gemt</div>
+  </div>
+
+</div>
+
+<!-- SHORTLIST BAR -->
+<div class="shortlist-bar hidden" id="shortlistBar">
+  <span>Gemt til liste:</span>
+  <span class="shortlist-count" id="shortlistCount">0</span>
+  <div class="shortlist-actions">
+    <button class="bar-btn bar-btn-pdf"   onclick="downloadPDF()">⬇ Download PDF</button>
+    <button class="bar-btn bar-btn-clear" onclick="clearShortlist()">Ryd liste</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// DEFAULTS
+// ════════════════════════════════════════════
+const DEFAULT_CFG = {
+  heroTitle:   'Find dit næste job i Danmark',
+  heroSub:     'Beskriv hvad du leder efter — eller upload et dokument og lad AI\'en matche det mod jobmarkedet.',
+  heroLabel:   'Det danske jobmarked · AI-drevet søgning',
+  placeholder: "F.eks. 'sygeplejerske i Aarhus' eller 'React-udvikler startup'",
+  chips: ['Dataforsker Python', 'SOSU plejehjem Sjælland', 'Junior salgskonsulent', 'Folkeskolelærer Jylland'],
+  aiPrompt: `Du er en dansk jobsøgningsassistent. Brugerens søgning: "{query}"
+
+Ranger disse {count} jobopslag efter relevans. Returner de {max} mest relevante som et JSON array med deres "job_id" værdier — kun tal, ingen markdown, ingen forklaring.
+
+Eksempel: [538891, 538834, 538802]
+
+Jobopslag:
+{jobs}`,
+  docPrompt: `Du er en dansk karriererådgiver og jobmatcher. Du har modtaget følgende dokument af typen "{doctype}":
+
+---
+{doccontent}
+---
+
+{hint}
+
+Identificer relevante kompetencer, uddannelsesområder, erfaringer og præferencer fra dokumentet. Match dem mod disse {count} jobopslag og returner de {max} mest relevante som et JSON array med deres "job_id" værdier — kun tal, ingen markdown.
+
+Eksempel: [538891, 538834, 538802]
+
+Jobopslag:
+{jobs}`,
+  expiredMode: 'badge'
+};
+
+const LS_CFG = 'dkjobs3_cfg';
+const MAX_KW = 80;
+const MAX_RES = 15;
+const MODEL = 'claude-sonnet-4-20250514';
+const DOC_MAX_CHARS = 8000;
+
+// ── WORKER PROXY ──────────────────────────────────────────────
+// Set this to your Cloudflare Worker URL once deployed.
+// Leave as empty string '' to fall back to user's own API key.
+// Example: 'https://dkjobs-proxy.YOUR-NAME.workers.dev'
+const WORKER_URL = '';
+// ─────────────────────────────────────────────────────────────
+
+let cfg = {};
+let allJobs = [];
+let filesMeta = [];
+let bookmarked = new Set();
+let bookmarkedJobs = {};
+let searching = false;
+let lastQuery = '';
+let searchMode = 'text';       // 'text' | 'doc'
+let docType = 'cv';
+let docText = '';
+let docFileName = '';
+let lastResults = [];
+
+// ════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  loadCfg();
+  applyCfgToUI();
+  renderHintChips();
+  await loadServerData();
+  renderStatus();
+  renderFilters();
+  if (!allJobs.length) showNoData();
+  else showIdle();
+  if (!localStorage.getItem('dkjobs_apikey')) setTimeout(showApiModal, 700);
+});
+
+// ════════════════════════════════════════════
+// LOAD SERVER DATA
+// ════════════════════════════════════════════
+async function loadServerData() {
+  try {
+    const mRes = await fetch('data/manifest.json');
+    if (!mRes.ok) throw new Error('manifest.json ikke fundet');
+    const manifest = await mRes.json();
+    filesMeta = manifest.files || [];
+    allJobs = [];
+    for (const f of filesMeta) {
+      try {
+        const dRes = await fetch('data/' + f.filename);
+        if (!dRes.ok) continue;
+        const rows = await dRes.json();
+        const jobs = (Array.isArray(rows) ? rows : rows.jobs || []).map(compactJob).filter(j => j.t || j.u);
+        f.count = jobs.length;
+        allJobs.push(...jobs);
+      } catch(e) { console.warn('Could not load', f.filename, e); }
+    }
+  } catch(e) { console.warn('Data load error:', e); filesMeta = []; allJobs = []; }
+  renderDataTab();
+}
+
+function compactJob(row) {
+  return {
+    i: row.job_id || row.id || 0,
+    t: String(row.job_title   || row.title    || '').slice(0, 120),
+    c: String(row.company_name|| row.company  || '').slice(0, 80),
+    u: String(row.job_url     || row.url      || ''),
+    g: String(row.job_category|| row.category || ''),
+    j: String(row.job_type    || ''),
+    e: String(row.employment_form || row.employment || ''),
+    o: String(row.town || row.city || ''),
+    r: String(row.region || ''),
+    x: String(row.gpt_context || row.description || '').slice(0, 400),
+    d: row.application_date ? String(row.application_date) : '',
+  };
+}
+function jobKey(j) { return j.u || (j.t + '|' + j.c); }
+
+// ════════════════════════════════════════════
+// SEARCH MODE TOGGLE
+// ════════════════════════════════════════════
+function setMode(mode) {
+  searchMode = mode;
+  document.getElementById('textMode').style.display = mode === 'text' ? 'block' : 'none';
+  document.getElementById('docMode').style.display  = mode === 'doc'  ? 'block' : 'none';
+  document.getElementById('modeTextBtn').className  = 'mode-btn' + (mode === 'text' ? ' active' : '');
+  document.getElementById('modeDocBtn').className   = 'mode-btn' + (mode === 'doc'  ? ' active' : '');
+}
+
+// ════════════════════════════════════════════
+// DOCUMENT TYPE SELECTION
+// ════════════════════════════════════════════
+function selectDocType(type) {
+  docType = type;
+  ['cv','education','course','wishlist'].forEach(t => {
+    document.getElementById('chip_' + t).className = 'doc-type-chip' + (t === type ? ' selected' : '');
+  });
+}
+
+// ════════════════════════════════════════════
+// LAZY LIBRARY LOADER
+// ════════════════════════════════════════════
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${url}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = url; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function ensurePdfJs() {
+  if (window.pdfjsLib) return;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+async function ensureMammoth() {
+  if (window.mammoth) return;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+}
+
+// ════════════════════════════════════════════
+// DOCUMENT EXTRACTION
+// ════════════════════════════════════════════
+function handleDocDrop(e) {
+  e.preventDefault();
+  document.getElementById('docUploadArea').classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f) extractDocText(f);
+}
+function handleDocFile(e) {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (f) extractDocText(f);
+}
+
+async function extractDocText(file) {
+  const zone = document.getElementById('docUploadArea');
+  const titleEl = zone.querySelector('.doc-upload-title');
+  titleEl.textContent = 'Indlæser bibliotek…';
+  docFileName = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  try {
+    let text = '';
+
+    if (ext === 'txt') {
+      text = await file.text();
+
+    } else if (ext === 'pdf') {
+      titleEl.textContent = 'Læser PDF…';
+      try {
+        await ensurePdfJs();
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        const pages = [];
+        for (let p = 1; p <= Math.min(pdf.numPages, 10); p++) {
+          const page    = await pdf.getPage(p);
+          const content = await page.getTextContent();
+          pages.push(content.items.map(i => i.str).join(' '));
+        }
+        text = pages.join('\n');
+      } catch(e) {
+        console.error('PDF.js error:', e);
+        // Fallback: ask user to paste text
+        text = await promptManualText('PDF kunne ikke læses automatisk. Kopier og indsæt teksten fra dit dokument:');
+      }
+
+    } else if (ext === 'docx' || ext === 'doc') {
+      titleEl.textContent = 'Læser Word-dokument…';
+      try {
+        await ensureMammoth();
+        const buf    = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer: buf });
+        text = result.value;
+      } catch(e) {
+        console.error('Mammoth error:', e);
+        text = await promptManualText('Word-dokument kunne ikke læses. Kopier og indsæt teksten:');
+      }
+
+    } else {
+      alert('Filtype ikke understøttet.\nBrug PDF, Word (.docx) eller TXT.');
+      titleEl.textContent = 'Upload dit dokument her';
+      return;
+    }
+
+    text = text.replace(/\s+/g, ' ').trim();
+    if (!text) {
+      text = await promptManualText('Ingen tekst fundet i filen. Indsæt teksten manuelt:');
+    }
+    if (!text) { titleEl.textContent = 'Upload dit dokument her'; return; }
+
+    docText = text.slice(0, DOC_MAX_CHARS);
+    showDocPreview(file.name, docText);
+
+  } catch(err) {
+    console.error('Doc extraction error:', err);
+    titleEl.textContent = 'Upload dit dokument her';
+    alert('Kunne ikke behandle filen: ' + err.message);
+  }
+}
+
+function promptManualText(msg) {
+  return new Promise(resolve => {
+    const val = prompt(msg);
+    resolve(val ? val.trim() : '');
+  });
+}
+
+function showDocPreview(name, text) {
+  const icons = { cv: '📋', education: '🎓', course: '📚', wishlist: '⭐', pdf: '📕', docx: '📘', txt: '📄' };
+  const ext = name.split('.').pop().toLowerCase();
+  document.getElementById('docPreviewIcon').textContent    = icons[ext] || '📄';
+  document.getElementById('docPreviewName').textContent    = name;
+  document.getElementById('docPreviewExcerpt').textContent = text.slice(0, 200) + (text.length > 200 ? '…' : '');
+  document.getElementById('docPreviewChars').textContent   = `${text.length.toLocaleString('da-DK')} tegn udtrukket`;
+  document.getElementById('docPreview').classList.add('visible');
+  document.getElementById('docUploadArea').style.display = 'none';
+  document.getElementById('docSearchBtn').disabled = !allJobs.length;
+}
+
+function removeDoc() {
+  docText = ''; docFileName = '';
+  document.getElementById('docPreview').classList.remove('visible');
+  document.getElementById('docUploadArea').style.display = '';
+  document.getElementById('docUploadArea').querySelector('.doc-upload-title').textContent = 'Upload dit dokument her';
+  document.getElementById('docSearchBtn').disabled = true;
+}
+
+// ════════════════════════════════════════════
+// TEXT SEARCH
+// ════════════════════════════════════════════
+function kwScore(job, kws) {
+  if (!kws.length) return 1;
+  const txt = `${job.t} ${job.c} ${job.g} ${job.j} ${job.o} ${job.r} ${job.e} ${job.x}`.toLowerCase();
+  return kws.reduce((s, k) => s + (txt.includes(k) ? 1 : 0), 0);
+}
+
+function isExpired(job) {
+  if (!job.d) return false;
+  try { const d = new Date(job.d); return !isNaN(d) && d < new Date(); } catch { return false; }
+}
+async function checkUrl(url) {
+  if (!url?.startsWith('http')) return true;
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 4000);
+    await fetch(url, { method: 'HEAD', signal: ctrl.signal, mode: 'no-cors' });
+    return true;
+  } catch(e) { return e.name === 'AbortError'; }
+}
+
+function applyHardFilters(pool) {
+  const fR = document.getElementById('filterRegion').value;
+  const fC = document.getElementById('filterCategory').value;
+  const fE = document.getElementById('filterEmployment').value;
+  if (fR) pool = pool.filter(j => j.r === fR);
+  if (fC) pool = pool.filter(j => j.g === fC);
+  if (fE) pool = pool.filter(j => j.e.includes(fE));
+  return pool;
+}
+
+async function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q || searching || !allJobs.length) return;
+  searching = true;
+  lastQuery = q;
+  document.getElementById('searchBtn').disabled = true;
+
+  const fRegion     = document.getElementById('filterRegion').value;
+  const fCategory   = document.getElementById('filterCategory').value;
+  const fEmployment = document.getElementById('filterEmployment').value;
+
+  let pool = allJobs;
+  if (fRegion)     pool = pool.filter(j => j.r === fRegion);
+  if (fCategory)   pool = pool.filter(j => j.g === fCategory);
+  if (fEmployment) pool = pool.filter(j => j.e.includes(fEmployment));
+
+  console.log('[SEARCH] Query:', q);
+  console.log('[SEARCH] Total jobs in pool:', pool.length);
+  console.log('[SEARCH] Sample job_ids:', pool.slice(0,3).map(j => j.i));
+  console.log('[SEARCH] Sample titles:', pool.slice(0,3).map(j => j.t));
+
+  setPhase(`Filtrerer ${pool.length.toLocaleString('da-DK')} opslag…`);
+  const kws = q.toLowerCase().split(/\s+/).filter(k => k.length > 1);
+  let candidates = pool.map(j => ({ j, s: kwScore(j, kws) })).filter(x => x.s > 0)
+    .sort((a,b) => b.s - a.s).slice(0, MAX_KW).map(x => x.j);
+  if (!candidates.length) candidates = pool.slice(0, MAX_KW);
+
+  console.log('[SEARCH] Keywords:', kws);
+  console.log('[SEARCH] Candidates after keyword filter:', candidates.length);
+  console.log('[SEARCH] Top 3 candidates:', candidates.slice(0,3).map(j => ({ id: j.i, title: j.t })));
+
+  const aiEnabled = !!(WORKER_URL || localStorage.getItem('dkjobs_apikey'));
+  console.log('[SEARCH] AI enabled:', aiEnabled, '| WORKER_URL:', WORKER_URL || '(none)', '| Has API key:', !!localStorage.getItem('dkjobs_apikey'));
+
+  let ranked = candidates;
+
+  if (aiEnabled && candidates.length > 1) {
+    setPhase(`AI analyserer ${candidates.length} kandidater…`);
+    try {
+      const payload = candidates.map((j) => ({ job_id: j.i, title:j.t, company:j.c, category:j.g, type:j.j, employment:j.e, town:j.o, region:j.r, context:j.x }));
+      const prompt = (cfg.aiPrompt || DEFAULT_CFG.aiPrompt)
+        .replace('{query}', q).replace('{count}', candidates.length)
+        .replace('{max}', MAX_RES).replace('{jobs}', JSON.stringify(payload));
+      console.log('[SEARCH] Sending to AI, first job in payload:', payload[0]);
+      ranked = await callAI(prompt, candidates);
+      console.log('[SEARCH] AI returned ranked count:', ranked.length);
+      console.log('[SEARCH] Top 3 ranked:', ranked.slice(0,3).map(j => ({ id: j?.i, title: j?.t })));
+    } catch(e) { console.error('[SEARCH] AI error:', e); }
+  }
+
+  const results = await filterAndValidate(ranked);
+  console.log('[SEARCH] Final results after validation:', results.length);
+  renderResults(results, aiEnabled, `Søgning: "${q}"`);
+  searching = false;
+  document.getElementById('searchBtn').disabled = false;
+}
+
+// ════════════════════════════════════════════
+// DOCUMENT SEARCH
+// ════════════════════════════════════════════
+async function doDocSearch() {
+  if (!docText || searching || !allJobs.length) return;
+  searching = true;
+  document.getElementById('docSearchBtn').disabled = true;
+
+  const hint = document.getElementById('docHintInput').value.trim();
+  const doctypeLabels = { cv:'CV', education:'Uddannelsesbeskrivelse', course:'Kursus/certifikat', wishlist:'Ønskeliste' };
+
+  let pool = applyHardFilters([...allJobs]);
+  setPhase(`Analyserer dokument mod ${pool.length.toLocaleString('da-DK')} opslag…`, 'AI matcher dit dokument mod jobmarkedet — dette tager ca. 10–20 sekunder');
+
+  // For doc search we send all candidates to AI (sample if huge)
+  let candidates = pool;
+  if (candidates.length > MAX_KW) {
+    // Spread sample across the dataset for diversity
+    const step = Math.floor(candidates.length / MAX_KW);
+    candidates = candidates.filter((_, i) => i % step === 0).slice(0, MAX_KW);
+  }
+
+  const aiEnabled = !!(WORKER_URL || localStorage.getItem('dkjobs_apikey'));
+  let ranked = candidates;
+
+  if (aiEnabled) {
+    setPhase('AI analyserer dit dokument…', 'Matcher kompetencer og præferencer mod jobopslag');
+    try {
+      const payload = candidates.map((j, idx) => ({ job_id: j.i, title:j.t, company:j.c, category:j.g, type:j.j, employment:j.e, town:j.o, region:j.r, context:j.x }));
+      const hintText = hint ? `Brugerens ekstra kommentar: "${hint}"` : '';
+      const prompt = (cfg.docPrompt || DEFAULT_CFG.docPrompt)
+        .replace('{doctype}',    doctypeLabels[docType] || docType)
+        .replace('{doccontent}', docText.slice(0, DOC_MAX_CHARS))
+        .replace('{hint}',       hintText)
+        .replace('{count}',      candidates.length)
+        .replace('{max}',        MAX_RES)
+        .replace('{jobs}',       JSON.stringify(payload));
+      ranked = await callAI(prompt, candidates);
+    } catch(e) { console.error('Doc AI error:', e); }
+  } else {
+    alert('Dokumentanalyse kræver en Anthropic API-nøgle. Klik 🔑 øverst til højre.');
+    searching = false;
+    document.getElementById('docSearchBtn').disabled = false;
+    showIdle();
+    return;
+  }
+
+  lastQuery = `Dokument: ${docFileName}`;
+  const results = await filterAndValidate(ranked);
+  const contextLabel = `${doctypeLabels[docType]}: "${docFileName}"${hint ? ` · ${hint}` : ''}`;
+  renderResults(results, true, contextLabel);
+  searching = false;
+  document.getElementById('docSearchBtn').disabled = false;
+}
+
+// ════════════════════════════════════════════
+// SHARED AI CALL
+// ════════════════════════════════════════════
+async function callAI(prompt, candidates) {
+  const usingWorker = !!WORKER_URL;
+  const apiKey = localStorage.getItem('dkjobs_apikey');
+
+  if (!usingWorker && !apiKey) {
+    console.warn('No API key and no Worker URL configured.');
+    return candidates.slice(0, MAX_RES);
+  }
+
+  const payload = { model: MODEL, max_tokens: 600, messages: [{ role: 'user', content: prompt }] };
+
+  let res;
+  if (usingWorker) {
+    res = await fetch(WORKER_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+  } else {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:  'POST',
+      headers: {
+        'Content-Type':       'application/json',
+        'x-api-key':          apiKey,
+        'anthropic-version':  '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  const data = await res.json();
+
+  if (data.error) {
+    console.error('Anthropic API error:', data.error);
+    return candidates.slice(0, MAX_RES);
+  }
+
+  const txt = data.content?.find(b => b.type === 'text')?.text || '[]';
+  console.log('[AI] Raw response:', txt.slice(0, 200));
+  let ids;
+  try {
+    ids = JSON.parse(txt.replace(/```[\w]*|```/g, '').trim());
+  } catch {
+    console.warn('Could not parse AI response:', txt);
+    return candidates.slice(0, MAX_RES);
+  }
+
+  // Build lookup by job_id (stored as j.i) — guaranteed unique 6-digit numbers
+  const map = {};
+  candidates.forEach(j => {
+    const id = String(j.i);
+    if (id && id !== '0') map[id] = j;
+  });
+
+  const aiRanked = ids.map(id => map[String(id)]).filter(Boolean);
+
+  // Fill up remaining slots with candidates AI didn't mention
+  const seen = new Set(aiRanked.map(j => String(j.i)));
+  for (const j of candidates) {
+    if (aiRanked.length >= MAX_RES * 2) break;
+    if (!seen.has(String(j.i))) { aiRanked.push(j); seen.add(String(j.i)); }
+  }
+  return aiRanked;
+}
+
+// ════════════════════════════════════════════
+// VALIDATE & FILTER
+// ════════════════════════════════════════════
+async function filterAndValidate(ranked) {
+  setPhase('Sorterer resultater…');
+  const mode = cfg.expiredMode || 'badge';
+  const results = [];
+  console.log('[VALIDATE] Checking', ranked.length, 'ranked jobs, mode:', mode);
+  for (const job of ranked) {
+    if (results.length >= MAX_RES) break;
+    if (!job) continue;
+    const expired = isExpired(job);
+    if (mode === 'hide' && expired) { console.log('[VALIDATE] Skipped expired:', job?.t); continue; }
+    results.push({ ...job, expired });
+  }
+  console.log('[VALIDATE] Final results:', results.length);
+  lastResults = results;
+  return results;
+}
+
+function applyFiltersAndSearch() {
+  if (searchMode === 'text' && document.getElementById('searchInput').value.trim()) doSearch();
+  else if (searchMode === 'doc' && docText) doDocSearch();
+}
+
+// ════════════════════════════════════════════
+// RENDER RESULTS
+// ════════════════════════════════════════════
+function renderResults(results, aiUsed, contextLabel) {
+  const el = document.getElementById('searchResults');
+  if (!results.length) {
+    el.innerHTML = `<div class="state-box"><div class="state-icon">🔎</div>
+      <div class="state-title">Ingen resultater</div>
+      <div class="state-sub">Prøv andre søgeord, juster filtrene eller upload et andet dokument</div></div>`;
+    return;
+  }
+  const badge = aiUsed
+    ? `<div class="ai-badge"><div class="ai-dot"></div>AI-rangeret</div>`
+    : `<div class="ai-badge">Nøgleordsmatch</div>`;
+
+  el.innerHTML = `
+    <div class="results-meta">
+      <div>
+        <div class="results-title"><span>${results.length}</span> relevante opslag</div>
+        ${contextLabel ? `<div class="results-context">${esc(contextLabel)}</div>` : ''}
+      </div>
+      ${badge}
+    </div>
+    ${results.map((job, i) => {
+      const key = jobKey(job);
+      const bkd = bookmarked.has(key);
+      const expBadge = job.expired && (cfg.expiredMode||'badge') === 'badge'
+        ? `<span class="tag tag-warn">⚠️ Frist muligvis udløbet</span>` : '';
+      return `
+        <div class="job-card${bkd?' bookmarked':''}${job.expired?' expired':''}" id="card_${btoa(encodeURIComponent(key)).slice(0,16)}" style="animation-delay:${i*30}ms">
+          <button class="bookmark-btn" onclick="toggleBookmark('${esc(key)}')" title="${bkd?'Fjern':'Gem til liste'}">${bkd?'★':'☆'}</button>
+          <div class="rank-badge">#${i+1}</div>
+          <div class="job-body">
+            <div class="job-title">${esc(job.t)}</div>
+            <div class="job-company">${esc(job.c)}</div>
+            <div class="job-tags">
+              ${job.o?`<span class="tag tag-loc">📍 ${esc(job.o)}</span>`:''}
+              ${job.g?`<span class="tag tag-cat">${esc(job.g)}</span>`:''}
+              ${job.e&&job.e!=='Fastansættelse'?`<span class="tag tag-emp">${esc(job.e)}</span>`:''}
+              ${expBadge}
+            </div>
+          </div>
+          <div class="card-right">
+            ${job.u?`<a href="${esc(job.u.replace(/^http:\/\//,'https://'))}" target="_blank" rel="noopener" class="apply-btn">Se job →</a>`:''}
+          </div>
+        </div>`;
+    }).join('')}`;
+}
+
+// ════════════════════════════════════════════
+// BOOKMARKS + PDF
+// ════════════════════════════════════════════
+function toggleBookmark(key) {
+  if (bookmarked.has(key)) {
+    bookmarked.delete(key); delete bookmarkedJobs[key];
+  } else {
+    bookmarked.add(key);
+    const job = lastResults.find(j => jobKey(j) === key);
+    if (job) bookmarkedJobs[key] = job;
+  }
+  // Update all matching cards
+  document.querySelectorAll('.job-card').forEach(card => {
+    const btn = card.querySelector('.bookmark-btn');
+    if (!btn) return;
+    const onclick = btn.getAttribute('onclick') || '';
+    const cardKey = onclick.match(/'([^']+)'/)?.[1];
+    if (cardKey === key) {
+      const on = bookmarked.has(key);
+      card.classList.toggle('bookmarked', on);
+      btn.textContent = on ? '★' : '☆';
+      btn.title = on ? 'Fjern fra liste' : 'Gem til liste';
+    }
+  });
+  updateShortlistBar();
+}
+
+function clearShortlist() {
+  bookmarked.clear(); bookmarkedJobs = {};
+  document.querySelectorAll('.job-card.bookmarked').forEach(c => {
+    c.classList.remove('bookmarked');
+    const btn = c.querySelector('.bookmark-btn');
+    if (btn) { btn.textContent = '☆'; btn.title = 'Gem til liste'; }
+  });
+  updateShortlistBar();
+}
+
+function updateShortlistBar() {
+  const n = bookmarked.size;
+  document.getElementById('shortlistCount').textContent = n;
+  document.getElementById('shortlistBar').classList.toggle('hidden', n === 0);
+}
+
+function downloadPDF() {
+  const jobs = Object.values(bookmarkedJobs);
+  if (!jobs.length) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+
+  doc.setFillColor(224,78,33);
+  doc.rect(0, 0, W, 22, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(16);
+  doc.text('DKJOBS', 14, 14);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  const dateStr = new Date().toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
+  doc.text(`Genvejsliste · ${dateStr}`, W - 14, 14, { align:'right' });
+
+  if (lastQuery) {
+    doc.setFillColor(245,244,240);
+    doc.rect(0, 22, W, 10, 'F');
+    doc.setTextColor(102,102,102);
+    doc.setFontSize(8.5);
+    doc.text(lastQuery.slice(0, 120), 14, 28.5);
+  }
+
+  doc.autoTable({
+    startY: lastQuery ? 34 : 28,
+    head: [['#','Stilling','Virksomhed','By','Kategori','Link']],
+    body: jobs.map((j,i) => [i+1, j.t, j.c, j.o||'—', j.g||'—', j.u?'Åbn job →':'—']),
+    styles: { font:'helvetica', fontSize:9, cellPadding:{top:4,right:5,bottom:4,left:5}, textColor:[17,17,17], lineColor:[226,224,219], lineWidth:0.3 },
+    headStyles: { fillColor:[17,17,17], textColor:[255,255,255], fontStyle:'bold', fontSize:8.5 },
+    alternateRowStyles: { fillColor:[245,244,240] },
+    columnStyles: { 0:{cellWidth:10,halign:'center'}, 1:{cellWidth:80}, 2:{cellWidth:60}, 3:{cellWidth:35}, 4:{cellWidth:50}, 5:{cellWidth:30,textColor:[224,78,33],fontStyle:'bold'} },
+    didDrawCell: (data) => {
+      if (data.column.index === 5 && data.section === 'body') {
+        const url = jobs[data.row.index]?.u;
+        if (url) doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url });
+      }
+    },
+    margin: { left:14, right:14 }
+  });
+
+  const pages = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    doc.setFillColor(245,244,240);
+    doc.rect(0, H-10, W, 10, 'F');
+    doc.setTextColor(153,153,153);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica','normal');
+    doc.text('DKJOBS · Det danske jobmarked', 14, H-3.5);
+    doc.text(`Side ${p} af ${pages}`, W-14, H-3.5, { align:'right' });
+  }
+
+  doc.save(`DKJOBS_genvejsliste_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+// ════════════════════════════════════════════
+// STATE RENDERING
+// ════════════════════════════════════════════
+function setPhase(msg, sub) {
+  document.getElementById('searchResults').innerHTML = `
+    <div class="state-box">
+      <div class="spinner"></div>
+      <div class="phase-text">${esc(msg)}</div>
+      ${sub ? `<div class="phase-sub">${esc(sub)}</div>` : ''}
+    </div>`;
+}
+function showNoData() {
+  document.getElementById('searchResults').innerHTML = `
+    <div class="state-box">
+      <div class="state-icon">📂</div>
+      <div class="state-title">Ingen data indlæst</div>
+      <div class="state-sub">Tjek at <code>data/manifest.json</code> eksisterer og er korrekt</div>
+    </div>`;
+}
+function showIdle() {
+  document.getElementById('searchResults').innerHTML = `
+    <div class="state-box">
+      <div class="state-icon">🔍</div>
+      <div class="state-title">Klar til søgning</div>
+      <div class="state-sub">${allJobs.length.toLocaleString('da-DK')} jobopslag klar — søg med fritekst eller upload et dokument</div>
+    </div>`;
+}
+function renderStatus() {
+  const el = document.getElementById('statusPill');
+  const btn = document.getElementById('searchBtn');
+  if (!allJobs.length) { el.textContent='Ingen data'; btn.disabled=true; }
+  else { el.innerHTML=`<strong>${allJobs.length.toLocaleString('da-DK')}</strong> opslag`; btn.disabled=false; }
+}
+function renderFilters() {
+  fillSelect('filterRegion',     [...new Set(allJobs.map(j=>j.r).filter(Boolean))].sort(),  'Alle regioner');
+  fillSelect('filterCategory',   [...new Set(allJobs.map(j=>j.g).filter(Boolean))].sort(),  'Alle kategorier');
+  fillSelect('filterEmployment', [...new Set(allJobs.flatMap(j=>j.e.split(',').map(s=>s.trim())).filter(Boolean))].sort(), 'Alle ansættelsesformer');
+}
+function fillSelect(id, opts, ph) {
+  const el = document.getElementById(id);
+  const cur = el.value;
+  el.innerHTML = `<option value="">${ph}</option>` +
+    opts.map(o=>`<option value="${esc(o)}"${o===cur?' selected':''}>${esc(o)}</option>`).join('');
+}
+function renderDataTab() {
+  document.getElementById('dataStats').innerHTML = `
+    <div class="data-card active">
+      <div class="data-card-title">Aktive opslag</div>
+      <div class="data-card-value">${allJobs.length.toLocaleString('da-DK')}</div>
+      <div class="data-card-sub">Klar til søgning</div>
+    </div>
+    <div class="data-card">
+      <div class="data-card-title">Datafiler</div>
+      <div class="data-card-value">${filesMeta.length}</div>
+      <div class="data-card-sub">${filesMeta.length===1?'1 fil':'Flere filer'} indlæst</div>
+    </div>`;
+  const colors=['#E04E21','#2563EB','#16a34a','#B45309'];
+  document.getElementById('serverFileList').innerHTML = filesMeta.length
+    ? filesMeta.map((f,i)=>`
+        <div class="file-item">
+          <div class="file-dot" style="background:${colors[i%colors.length]}"></div>
+          <div class="file-item-info">
+            <div class="file-item-name">${esc(f.name)}</div>
+            <div class="file-item-meta">${(f.count||'?').toLocaleString('da-DK')} opslag · ${esc(f.date||'')}</div>
+          </div>
+        </div>`).join('')
+    : `<div style="font-size:13px;color:var(--gray3);padding:8px 0">Ingen filer i manifest.json</div>`;
+}
+
+// ════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════
+function showTab(tab) {
+  ['search','data','settings'].forEach(t => {
+    const cap = t.charAt(0).toUpperCase()+t.slice(1);
+    document.getElementById('tab'+cap).style.display = t===tab?'':'none';
+    document.getElementById('nav'+cap).className = 'nav-btn'+(t===tab?' active':'');
+  });
+  document.getElementById('heroSection').style.display = tab==='search'?'':'none';
+  if (tab==='search' && !allJobs.length) showNoData();
+  if (tab==='settings') applyCfgToUI();
+}
+
+// ════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════
+function loadCfg() {
+  try { cfg = { ...DEFAULT_CFG, ...JSON.parse(localStorage.getItem(LS_CFG)||'{}') }; }
+  catch { cfg = { ...DEFAULT_CFG }; }
+}
+function applyCfgToUI() {
+  document.getElementById('heroTitle').textContent   = cfg.heroTitle;
+  document.getElementById('heroSub').textContent     = cfg.heroSub;
+  document.getElementById('heroLabel').textContent   = cfg.heroLabel;
+  document.getElementById('searchInput').placeholder = cfg.placeholder;
+  document.getElementById('cfgHeroTitle').value   = cfg.heroTitle;
+  document.getElementById('cfgHeroSub').value     = cfg.heroSub;
+  document.getElementById('cfgHeroLabel').value   = cfg.heroLabel;
+  document.getElementById('cfgPlaceholder').value = cfg.placeholder;
+  document.getElementById('cfgAiPrompt').value    = cfg.aiPrompt;
+  document.getElementById('cfgDocPrompt').value   = cfg.docPrompt || DEFAULT_CFG.docPrompt;
+  document.getElementById('cfgExpiredMode').value = cfg.expiredMode;
+  renderChipsEditor();
+}
+function saveSettings() {
+  cfg.heroTitle   = document.getElementById('cfgHeroTitle').value.trim()   || DEFAULT_CFG.heroTitle;
+  cfg.heroSub     = document.getElementById('cfgHeroSub').value.trim()     || DEFAULT_CFG.heroSub;
+  cfg.heroLabel   = document.getElementById('cfgHeroLabel').value.trim()   || DEFAULT_CFG.heroLabel;
+  cfg.placeholder = document.getElementById('cfgPlaceholder').value.trim() || DEFAULT_CFG.placeholder;
+  cfg.aiPrompt    = document.getElementById('cfgAiPrompt').value.trim()    || DEFAULT_CFG.aiPrompt;
+  cfg.docPrompt   = document.getElementById('cfgDocPrompt').value.trim()   || DEFAULT_CFG.docPrompt;
+  cfg.expiredMode = document.getElementById('cfgExpiredMode').value;
+  cfg.chips = [...document.querySelectorAll('.chip-input')].map(i=>i.value.trim()).filter(Boolean);
+  localStorage.setItem(LS_CFG, JSON.stringify(cfg));
+  applyCfgToUI(); renderHintChips();
+  const m = document.getElementById('settingsSavedMsg');
+  m.style.display='block'; setTimeout(()=>m.style.display='none',2200);
+}
+function renderChipsEditor() {
+  document.getElementById('chipsEditor').innerHTML = cfg.chips.map((c,i)=>`
+    <div class="chip-row">
+      <input class="chip-input" value="${esc(c)}" oninput="cfg.chips[${i}]=this.value">
+      <button class="chip-remove" onclick="removeChip(${i})">✕</button>
+    </div>`).join('');
+}
+function addChip()        { cfg.chips.push(''); renderChipsEditor(); document.querySelectorAll('.chip-input')[cfg.chips.length-1]?.focus(); }
+function removeChip(i)    { cfg.chips.splice(i,1); renderChipsEditor(); }
+function renderHintChips() {
+  document.getElementById('hintChips').innerHTML = cfg.chips.filter(c=>c.trim())
+    .map(c=>`<span class="hint-chip" onclick="fillSearch('${esc(c)}')">${esc(c)}</span>`).join('');
+}
+
+// ════════════════════════════════════════════
+// API KEY
+// ════════════════════════════════════════════
+function showApiModal() {
+  document.getElementById('apiKeyInput').value = localStorage.getItem('dkjobs_apikey')||'';
+  document.getElementById('apiModal').style.display='flex';
+}
+function closeModal() { document.getElementById('apiModal').style.display='none'; }
+function saveApiKey() {
+  const v = document.getElementById('apiKeyInput').value.trim();
+  if (v) localStorage.setItem('dkjobs_apikey',v); else localStorage.removeItem('dkjobs_apikey');
+  closeModal();
+}
+
+// ════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════
+function fillSearch(t) { document.getElementById('searchInput').value=t; doSearch(); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
